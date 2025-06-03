@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fastapi-Starter Backend - Authentication Test</title>
+    <!-- Pico CSS - Minimal CSS Framework -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <!-- Axios for HTTP requests -->
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <style>
+        .token-display {
+            background-color: var(--pico-background-color);
+            border: 1px solid var(--pico-border-color);
+            border-radius: var(--pico-border-radius);
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: monospace;
+            font-size: 0.875rem;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .status-success {
+            color: var(--pico-color-green-500);
+        }
+
+        .status-error {
+            color: var(--pico-color-red-500);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .user-info {
+            background-color: var(--pico-background-color);
+            border: 1px solid var(--pico-border-color);
+            border-radius: var(--pico-border-radius);
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .response-display {
+            background-color: var(--pico-background-color);
+            border: 1px solid var(--pico-border-color);
+            border-radius: var(--pico-border-radius);
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-tab {
+            background: none;
+            border: 1px solid var(--pico-border-color);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: var(--pico-border-radius);
+        }
+
+        .nav-tab.active {
+            background-color: var(--pico-primary);
+            color: white;
+            border-color: var(--pico-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="container">
+        <nav>
+            <ul>
+                <li><strong>Fastapi-Starter Backend API Test</strong></li>
+            </ul>
+            <ul>
+                <li><button id="themeToggle" class="outline secondary">🌙 Dark</button></li>
+                <li><button id="logoutBtn" class="outline secondary" onclick="logout()" disabled>Logout</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('auth')">Authentication</button>
+            <button class="nav-tab" onclick="showTab('user')">User Profile</button>
+            <button class="nav-tab" onclick="showTab('admin')">Admin Panel</button>
+        </div>
+
+        <!-- Authentication Tab -->
+        <section id="auth-tab" class="tab-content active">
+            <h2>Authentication Testing</h2>
+
+            <!-- Login Section -->
+            <article>
+                <header>
+                    <h3>Login</h3>
+                </header>
+                <form id="loginForm">
+                    <div class="grid">
+                        <label>
+                            Email
+                            <input type="email" id="loginEmail" placeholder="admin@example.com"
+                                value="admin@example.com" required>
+                        </label>
+                        <label>
+                            Password
+                            <input type="password" id="loginPassword" placeholder="Password" value="admin123" required>
+                        </label>
+                    </div>
+                    <div class="grid">
+                        <button type="submit">Login (JSON)</button>
+                        <button type="button" onclick="loginForm()">Login (Form)</button>
+                    </div>
+                </form>
+            </article>
+
+            <!-- Register Section -->
+            <article>
+                <header>
+                    <h3>Register New User</h3>
+                </header>
+                <form id="registerForm">
+                    <div class="grid">
+                        <label>
+                            Email
+                            <input type="email" id="registerEmail" placeholder="user@example.com" required>
+                        </label>
+                        <label>
+                            Username
+                            <input type="text" id="registerUsername" placeholder="username" required>
+                        </label>
+                    </div>
+                    <div class="grid">
+                        <label>
+                            Password
+                            <input type="password" id="registerPassword" placeholder="Password" required>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="registerAdmin" role="switch">
+                            Make Admin
+                        </label>
+                    </div>
+                    <button type="submit">Register User</button>
+                </form>
+            </article>
+
+            <!-- Token Section -->
+            <article>
+                <header>
+                    <h3>Token Management</h3>
+                </header>
+                <div class="grid">
+                    <button onclick="refreshToken()" disabled id="refreshBtn">Refresh Token</button>
+                    <button onclick="testProtectedEndpoint()" disabled id="testBtn">Test Protected Endpoint</button>
+                </div>
+
+                <div id="tokenDisplay" class="token-display hidden">
+                    <h4>Current Tokens:</h4>
+                    <p><strong>Access Token:</strong> <span id="accessToken"></span></p>
+                    <p><strong>Refresh Token:</strong> <span id="refreshTokenSpan"></span></p>
+                </div>
+            </article>
+        </section>
+
+        <!-- User Profile Tab -->
+        <section id="user-tab" class="tab-content">
+            <h2>User Profile</h2>
+
+            <article>
+                <header>
+                    <h3>Current User Info</h3>
+                </header>
+                <button onclick="getUserInfo()">Get User Info</button>
+                <div id="userInfo" class="user-info hidden">
+                    <!-- User info will be displayed here -->
+                </div>
+            </article>
+
+            <article>
+                <header>
+                    <h3>Update Profile</h3>
+                </header>
+                <form id="updateProfileForm">
+                    <div class="grid">
+                        <label>
+                            Email
+                            <input type="email" id="updateEmail" placeholder="New email">
+                        </label>
+                        <label>
+                            Username
+                            <input type="text" id="updateUsername" placeholder="New username">
+                        </label>
+                    </div>
+                    <label>
+                        New Password (optional)
+                        <input type="password" id="updatePassword" placeholder="New password">
+                    </label>
+                    <button type="submit">Update Profile</button>
+                </form>
+            </article>
+        </section>
+
+        <!-- Admin Panel Tab -->
+        <section id="admin-tab" class="tab-content">
+            <h2>Admin Panel</h2>
+
+            <article>
+                <header>
+                    <h3>All Users</h3>
+                </header>
+                <button onclick="getAllUsers()">Get All Users</button>
+                <div id="allUsers" class="user-info hidden">
+                    <!-- Users list will be displayed here -->
+                </div>
+            </article>
+        </section>
+
+        <!-- Response Display -->
+        <article>
+            <header>
+                <h3>API Response</h3>
+            </header>
+            <div id="responseDisplay" class="response-display">
+                Ready to test the API...
+            </div>
+        </article>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
