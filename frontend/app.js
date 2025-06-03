@@ -219,7 +219,7 @@ async function logout() {
 // User management functions
 async function getUserInfo() {
     try {
-        const response = await api.get('/users/me');
+        const response = await api.get('/api/v1/users/me');
 
         const userInfo = document.getElementById('userInfo');
         userInfo.innerHTML = `
@@ -249,7 +249,7 @@ async function updateProfile(email, username, password) {
         if (username) updateData.username = username;
         if (password) updateData.password = password;
 
-        const response = await api.put('/users/me', updateData);
+        const response = await api.put('/api/v1/users/me', updateData);
 
         displayResponse(response);
 
@@ -266,7 +266,7 @@ async function updateProfile(email, username, password) {
 // Admin functions
 async function getAllUsers() {
     try {
-        const response = await api.get('/admin/users');
+        const response = await api.get('/api/v1/users/');
 
         const allUsers = document.getElementById('allUsers');
         allUsers.innerHTML = `
@@ -292,7 +292,7 @@ async function getAllUsers() {
 // Test functions
 async function testProtectedEndpoint() {
     try {
-        const response = await api.get('/items/');
+        const response = await api.get('/api/v1/users/me');
         displayResponse(response);
         return response.data;
     } catch (error) {
