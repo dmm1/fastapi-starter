@@ -16,9 +16,7 @@ class Settings(BaseSettings):
     description: str = "A modern authentication system with FastAPI"
 
     # Security
-    SECRET_KEY: str = (
-        "your-super-secret-key-change-this-in-production-minimum-32-characters"
-    )
+    SECRET_KEY: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
@@ -34,10 +32,10 @@ class Settings(BaseSettings):
     # CORS
     backend_cors_origins: List[str] = ["*"]  # Configure properly in production
 
-    # Admin User
-    admin_email: str = "admin@example.com"
-    admin_username: str = "admin"
-    admin_password: str = "admin123"
+    # Admin User - These MUST be set in .env file
+    admin_email: str
+    admin_username: str
+    admin_password: str
 
     @validator("backend_cors_origins", pre=True)
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:

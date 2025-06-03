@@ -4,6 +4,7 @@ Main FastAPI application entry point.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from app.core.config import settings
 from app.api.v1.api import api_router
 from app.db.session import create_tables, init_db
@@ -60,3 +61,12 @@ async def root():
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy"}
+
+
+@app.get("/favicon.ico")
+async def favicon():
+    """Favicon endpoint to prevent 404 errors."""
+    # Return a simple 1x1 transparent PNG as favicon
+    # This prevents 404 errors in browser console
+    transparent_png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xdb\x00\x00\x00\x00IEND\xaeB`\x82"
+    return Response(content=transparent_png, media_type="image/png")

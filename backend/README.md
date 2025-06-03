@@ -18,29 +18,37 @@ A secure FastAPI-based authentication system with JWT tokens, user management, a
 
 ## Quick Start
 
-1. **Install Dependencies**:
+1. **Setup Environment**:
+   ```bash
+   cp .env.example .env
+   # Generate a secure secret key (optional)
+   python generate_secret_key.py
+   # Edit .env with your configuration (especially admin credentials!)
+   ```
+
+2. **Install Dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-2. **Start the Server**:
+3. **Start the Server**:
    ```bash
    python run.py
    ```
 
-3. **Access Documentation**: 
+4. **Access Documentation**: 
    - API Docs: http://127.0.0.1:8000/docs
    - OpenAPI Schema: http://127.0.0.1:8000/openapi.json
    - Health Check: http://127.0.0.1:8000/health
 
 ## Default Admin User
 
-A default admin user is created automatically:
-- **Email**: `admin@example.com`
-- **Password**: `admin123`
-- **Username**: `admin`
+A default admin user is created automatically from your `.env` configuration:
+- **Email**: Set via `ADMIN_EMAIL` in `.env`
+- **Password**: Set via `ADMIN_PASSWORD` in `.env`
+- **Username**: Set via `ADMIN_USERNAME` in `.env`
 
-⚠️ **Important**: Change the admin password in production!
+⚠️ **Important**: Always change the default credentials in your `.env` file!
 
 ## API Endpoints
 
@@ -241,15 +249,35 @@ backend/
 
 ## Environment Variables
 
-Create a `.env` file in the backend directory:
+Copy the example file and configure your environment:
+
+```bash
+cp .env.example .env
+```
+
+Edit the `.env` file with your configuration:
 
 ```env
+# Security - Generate a strong secret key for production!
 SECRET_KEY=your-super-secret-key-change-this-in-production-minimum-32-characters
+
+# Database
 DATABASE_URL=sqlite:///./data/auth.db
-ADMIN_EMAIL=admin@example.com
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
+
+# Admin User Credentials - CHANGE THESE!
+ADMIN_EMAIL=your-admin@example.com
+ADMIN_USERNAME=youradmin  
+ADMIN_PASSWORD=your-secure-password
+
+# CORS Origins (JSON array format)
+BACKEND_CORS_ORIGINS=["http://localhost:3000"]
+
+# Token Configuration
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
 ```
+
+⚠️ **Security**: Never commit the `.env` file to version control!
 
 ## Dependencies
 

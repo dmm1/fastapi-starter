@@ -82,12 +82,12 @@ With the backend running, access:
 
 ## 🔐 Default Credentials
 
-The system creates a default admin user:
-- **Email**: `admin@example.com`
-- **Password**: `admin123`
-- **Username**: `admin`
+The system creates a default admin user from your `.env` configuration:
+- **Email**: Set via `ADMIN_EMAIL` in `.env` 
+- **Password**: Set via `ADMIN_PASSWORD` in `.env`
+- **Username**: Set via `ADMIN_USERNAME` in `.env`
 
-⚠️ **Important**: Change these credentials in production!
+⚠️ **Important**: Always change the default credentials in your `.env` file before production!
 
 ## 📊 Key Endpoints
 
@@ -108,19 +108,27 @@ The system creates a default admin user:
    cd Fastapi-Starter
    ```
 
-2. **Install Backend Dependencies**:
+2. **Setup Environment**:
    ```bash
    cd backend
+   cp .env.example .env
+   # Generate a secure secret key (optional)
+   python generate_secret_key.py
+   # Edit .env file with your settings (especially admin credentials!)
+   ```
+
+3. **Install Backend Dependencies**:
+   ```bash
    pip install -r requirements.txt
    cd ..
    ```
 
-3. **Start Both Servers**:
+4. **Start Both Servers**:
    ```bash
    python run.py
    ```
 
-4. **Open Browser**: http://localhost:3000
+5. **Open Browser**: http://localhost:3000
 
 ## 🏗️ Architecture
 
@@ -156,14 +164,35 @@ The system creates a default admin user:
 
 ## 📝 Environment Configuration
 
-Create `backend/.env`:
-```env
-SECRET_KEY=your-super-secret-key-change-this-in-production-minimum-32-characters
-DATABASE_URL=sqlite:///./data/auth.db
-ADMIN_EMAIL=admin@example.com
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
+Copy the example environment file and configure your settings:
+
+```bash
+cd backend
+cp .env.example .env
 ```
+
+Then edit `backend/.env` with your configuration:
+```env
+# Security - Generate a strong secret key for production
+SECRET_KEY=your-super-secret-key-change-this-in-production-minimum-32-characters
+
+# Database
+DATABASE_URL=sqlite:///./data/auth.db
+
+# Admin User Credentials - CHANGE THESE!
+ADMIN_EMAIL=your-admin@example.com
+ADMIN_USERNAME=youradmin
+ADMIN_PASSWORD=your-secure-password
+
+# CORS Origins (JSON array format)
+BACKEND_CORS_ORIGINS=["http://localhost:3000"]
+
+# Token Configuration
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
+```
+
+⚠️ **Security Note**: Never commit the `.env` file to version control. It contains sensitive information!
 
 ## 🚀 Production Deployment
 
