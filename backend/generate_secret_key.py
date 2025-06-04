@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     secret_key = generate_secret_key()
 
-    print(f"Generated SECRET_KEY:")
+    print("Generated SECRET_KEY:")
     print(f"SECRET_KEY={secret_key}")
     print()
     print("💡 Copy this line to your .env file")

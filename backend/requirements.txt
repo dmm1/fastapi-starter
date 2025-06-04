@@ -7,3 +7,7 @@ sqlalchemy
 pydantic[email]
 pydantic-settings
 uvicorn[standard]
+slowapi
+redis
+psutil
+structlog

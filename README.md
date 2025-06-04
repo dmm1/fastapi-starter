@@ -46,6 +46,10 @@ Fastapi-Starter/
 - ✅ **API Versioning**: Clean `/api/v1/` endpoints
 - ✅ **OAuth2 Compatible**: Standard OAuth2 password flow
 - ✅ **Auto Documentation**: Swagger UI at `/docs`
+- 🆕 **Rate Limiting**: SlowAPI integration with Redis support
+- 🆕 **Monitoring**: Comprehensive metrics and health checks
+- 🆕 **Structured Logging**: JSON-formatted security event logging
+- 🆕 **Production Ready**: Enhanced security and observability
 
 ### Frontend (Test Interface)
 - ✅ **API Testing UI**: Comprehensive interface to test all backend endpoints
@@ -98,7 +102,9 @@ The system creates a default admin user from your `.env` configuration:
 | POST | `/api/v1/auth/refresh` | Refresh access token |
 | GET | `/api/v1/users/me` | Get current user info |
 | GET | `/api/v1/users/` | Get all users (admin) |
-| GET | `/health` | Health check |
+| GET | `/health` | Health check with system metrics |
+| GET | `/metrics` | Application metrics (monitoring) |
+| GET | `/status` | Basic application status |
 
 ## 🛠️ Development Setup
 
@@ -264,9 +270,21 @@ npm install axios
 
 - **Backend README**: `backend/README.md` - Detailed API documentation
 - **Frontend README**: `frontend/README.md` - Test interface guide
+- **Rate Limiting & Monitoring**: `RATE_LIMITING_AND_MONITORING.md` - Production features guide
 - **API Docs**: Available at `/docs` when backend is running
 
 > 📚 **For Frontend Developers**: Study the test interface code in `frontend/app.js` to understand the authentication flow, then implement it in your preferred modern framework.
+
+## 🔒 Production Features
+
+This starter now includes production-ready features:
+
+- **Rate Limiting**: Automatic protection against abuse with configurable limits
+- **Monitoring**: Health checks, metrics, and system monitoring
+- **Structured Logging**: JSON-formatted logs for security events
+- **Security Events**: Automatic tracking of authentication attempts and rate limit violations
+
+See `RATE_LIMITING_AND_MONITORING.md` for detailed configuration and usage.
 
 ## 🤝 Contributing
 
