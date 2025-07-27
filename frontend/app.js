@@ -302,6 +302,10 @@ function updateAuthUI() {
             noTokenMessage.classList.remove('hidden');
         }
     }
+    
+    // Update profile UI when auth status changes
+    updateProfileUI();
+}
 }
 
 // Monitoring Functions
@@ -725,18 +729,169 @@ function updateResourceChart(data) {
     }
 }
 
+// Profile Management Functions
+async function loadUserProfile() {
+    try {
+        const response = await api.get('/api/v1/users/me');
+        const user = response.data;
+        
+        // Update profile display
+        document.getElementById('currentEmail').textContent = user.email || '-';
+        document.getElementById('currentUsername').textContent = user.username || '-';
+        document.getElementById('currentFirstname').textContent = user.firstname || '-';
+        document.getElementById('currentLastname').textContent = user.lastname || '-';
+        document.getElementById('currentAvatar').textContent = user.avatar || '-';
+        document.getElementById('currentLastLogin').textContent = 
+            user.last_logged_in ? new Date(user.last_logged_in).toLocaleString() : '-';
+        document.getElementById('currentRoles').textContent = 
+            user.roles.map(role => role.name).join(', ') || '-';
+        
+        // Pre-fill update form
+        document.getElementById('updateFirstname').value = user.firstname || '';
+        document.getElementById('updateLastname').value = user.lastname || '';
+        document.getElementById('updateAvatar').value = user.avatar || '';
+        
+        // Show admin section if user is admin
+        const isAdmin = user.roles.some(role => role.name === 'admin');
+        document.getElementById('adminSection').style.display = isAdmin ? 'block' : 'none';
+        
+        addEventLog('success', 'Profile loaded successfully');
+        return user;
+    } catch (error) {
+        addEventLog('errors', 'Failed to load profile', error.response?.data);
+        showToast('Failed to load profile: ' + (error.response?.data?.detail || error.message), 'error');
+        throw error;
+    }
+}
+
+async function updateProfile(profileData) {
+    try {
+        const response = await api.put('/api/v1/users/me', profileData);
+        addEventLog('success', 'Profile updated successfully');
+        showToast('Profile updated successfully!', 'success');
+        
+        // Refresh profile display
+        await loadUserProfile();
+        return response.data;
+    } catch (error) {
+        addEventLog('errors', 'Failed to update profile', error.response?.data);
+        showToast('Failed to update profile: ' + (error.response?.data?.detail || error.message), 'error');
+        throw error;
+    }
+}
+
+async function changePassword(currentPassword, newPassword) {
+    try {
+        const response = await api.post('/api/v1/users/me/change-password', {
+            current_password: currentPassword,
+            new_password: newPassword
+        });
+        addEventLog('success', 'Password changed successfully');
+        showToast('Password changed successfully!', 'success');
+        
+        // Clear form
+        document.getElementById('changePasswordForm').reset();
+        return response.data;
+    } catch (error) {
+        addEventLog('errors', 'Failed to change password', error.response?.data);
+        showToast('Failed to change password: ' + (error.response?.data?.detail || error.message), 'error');
+        throw error;
+    }
+}
+
+async function loadAllUsers() {
+    try {
+        const response = await api.get('/api/v1/users/');
+        const users = response.data;
+        
+        const usersList = document.getElementById('usersList');
+        usersList.innerHTML = `
+            <h4>All Users (${users.length})</h4>
+            <div style="max-height: 400px; overflow-y: auto;">
+                ${users.map(user => `
+                    <div style="background: #f9f9f9; margin: 10px 0; padding: 15px; border-radius: 5px;">
+                        <p><strong>ID:</strong> ${user.id}</p>
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>Username:</strong> ${user.username}</p>
+                        <p><strong>Name:</strong> ${user.firstname || '-'} ${user.lastname || '-'}</p>
+                        <p><strong>Active:</strong> ${user.is_active ? 'Yes' : 'No'}</p>
+                        <p><strong>Admin:</strong> ${user.is_admin ? 'Yes' : 'No'}</p>
+                        <p><strong>Roles:</strong> ${user.roles.map(role => role.name).join(', ')}</p>
+                        <p><strong>Last Login:</strong> ${user.last_logged_in ? new Date(user.last_logged_in).toLocaleString() : 'Never'}</p>
+                        <p><strong>Created:</strong> ${new Date(user.created_at).toLocaleString()}</p>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        
+        addEventLog('success', `Loaded ${users.length} users`);
+        return users;
+    } catch (error) {
+        addEventLog('errors', 'Failed to load users', error.response?.data);
+        showToast('Failed to load users: ' + (error.response?.data?.detail || error.message), 'error');
+        throw error;
+    }
+}
+
+function updateProfileUI() {
+    const isAuthenticated = currentTokens.access_token !== null;
+    
+    // Show/hide profile sections based on auth status
+    document.getElementById('profileAuthRequired').style.display = isAuthenticated ? 'none' : 'block';
+    document.getElementById('profileContent').style.display = isAuthenticated ? 'block' : 'none';
+    
+    if (isAuthenticated) {
+        // Load profile data when authenticated
+        loadUserProfile().catch(() => {
+            // Handle error silently, already logged
+        });
+    }
+}
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', function () {
     // Initialize charts
     initializeCharts();
 
-    // Tab navigation
-    document.querySelectorAll('.nav-tab').forEach(button => {
+    // Tab navigation (simple version)
+    document.querySelectorAll('.tab-btn').forEach(button => {
         button.addEventListener('click', function () {
             const tabName = this.dataset.tab;
-            showTab(tabName);
+            
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab and set button active
+            document.getElementById(`${tabName}-tab`).style.display = 'block';
+            this.classList.add('active');
+            
+            // Load tab-specific data
+            if (tabName === 'profile') {
+                updateProfileUI();
+            } else if (tabName === 'monitoring') {
+                updateSystemMetrics();
+            } else if (tabName === 'rate-limits') {
+                updateRateLimitStatus();
+            }
         });
     });
+
+    // Tab navigation (advanced version - if exists)
+    if (document.querySelectorAll('.nav-tab').length > 0) {
+        document.querySelectorAll('.nav-tab').forEach(button => {
+            button.addEventListener('click', function () {
+                const tabName = this.dataset.tab;
+                showTab(tabName);
+            });
+        });
+    }
 
     // Login form
     document.getElementById('loginForm').addEventListener('submit', async function (e) {
@@ -759,6 +914,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Get user info button
     document.getElementById('getUserInfoBtn').addEventListener('click', getUserInfo);
+
+    // Profile management event listeners
+    document.getElementById('refreshProfileBtn').addEventListener('click', loadUserProfile);
+    
+    document.getElementById('updateProfileForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const profileData = {
+            firstname: document.getElementById('updateFirstname').value || null,
+            lastname: document.getElementById('updateLastname').value || null,
+            avatar: document.getElementById('updateAvatar').value || null
+        };
+        await updateProfile(profileData);
+    });
+    
+    document.getElementById('changePasswordForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (newPassword !== confirmPassword) {
+            showToast('New passwords do not match', 'error');
+            return;
+        }
+        
+        await changePassword(currentPassword, newPassword);
+    });
+    
+    document.getElementById('loadAllUsersBtn').addEventListener('click', loadAllUsers);
 
     // Quick action buttons
     document.getElementById('healthCheckBtn').addEventListener('click', async function () {
