@@ -1,55 +1,95 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import {
-  Outlet,
   RouterProvider,
   createRootRoute,
   createRoute,
   createRouter,
 } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-import FormSimpleDemo from './routes/demo.form.simple.tsx'
-import FormAddressDemo from './routes/demo.form.address.tsx'
-import StoreDemo from './routes/demo.store.tsx'
-import TableDemo from './routes/demo.table.tsx'
-import TanStackQueryDemo from './routes/demo.tanstack-query.tsx'
-
-import Header from './components/Header'
-
-import TanStackQueryLayout from './integrations/tanstack-query/layout.tsx'
 
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 
 import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
 
-import App from './App.tsx'
+// Import page components
+import Dashboard from './pages/Dashboard.tsx'
+import Login from './pages/Login.tsx'
+import Profile from './pages/Profile.tsx'
+import Admin from './pages/Admin.tsx'
+import NotFound from './pages/NotFound.tsx'
+import { App } from './App.tsx'
+
+import { AuthedLayout } from './components/AuthedLayout'
+
+// Index redirect component
+function IndexRedirect() {
+  return <Dashboard />;
+}
 
 const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <Header />
-      <Outlet />
-      <TanStackRouterDevtools />
-
-      <TanStackQueryLayout />
-    </>
-  ),
+  component: App,
 })
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: App,
+  component: () => (
+    <AuthedLayout>
+      <IndexRedirect />
+    </AuthedLayout>
+  ),
+})
+
+const dashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/dashboard',
+  component: () => (
+    <AuthedLayout>
+      <Dashboard />
+    </AuthedLayout>
+  ),
+})
+
+const profileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/profile',
+  component: () => (
+    <AuthedLayout>
+      <Profile />
+    </AuthedLayout>
+  ),
+})
+
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin',
+  component: () => (
+    <AuthedLayout>
+      <Admin />
+    </AuthedLayout>
+  ),
+})
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  component: Login,
+})
+
+const notFoundRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/not-found',
+  component: NotFound,
 })
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  FormSimpleDemo(rootRoute),
-  FormAddressDemo(rootRoute),
-  StoreDemo(rootRoute),
-  TableDemo(rootRoute),
-  TanStackQueryDemo(rootRoute),
+  dashboardRoute,
+  profileRoute,
+  adminRoute,
+  loginRoute,
+  notFoundRoute,
 ])
 
 const router = createRouter({

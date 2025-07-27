@@ -16,42 +16,49 @@ A simple, lightweight frontend to test the Fastapi-Starter Backend authenticatio
 ## Quick Start
 
 1. **Make sure the backend is running**:
+
    ```bash
    cd ../backend
    python run.py
    ```
 
 2. **Start the frontend server**:
+
    ```bash
    python server.py
    ```
 
-3. **Open your browser**: http://localhost:3000
+3. **Open your browser**: <http://localhost:3000>
 
 ## Default Test Credentials
 
 The frontend comes pre-filled with the default admin credentials:
+
 - **Email**: `admin@example.com`
 - **Password**: `admin123`
 
 ## UI Overview
 
 ### 🔐 Authentication Tab
+
 - **Login Forms**: Test both JSON and OAuth2 form-based login
 - **User Registration**: Create new users with admin toggle
 - **Token Display**: View current access and refresh tokens
 - **Token Management**: Manual token refresh and protected endpoint testing
 
 ### 👤 User Profile Tab
+
 - **User Info**: Display current user information
 - **Profile Updates**: Update email, username, and password
 - **Real-time Updates**: See changes immediately
 
 ### 👑 Admin Panel Tab
+
 - **User List**: View all registered users (admin only)
 - **User Management**: Future admin user management features
 
 ### 📊 API Response Panel
+
 - **Real-time Responses**: See all API calls and responses
 - **Error Handling**: Clear error messages and status codes
 - **JSON Formatting**: Pretty-printed JSON responses
@@ -59,23 +66,26 @@ The frontend comes pre-filled with the default admin credentials:
 ## Features in Detail
 
 ### Automatic Token Management
+
 - **Auto-refresh**: Tokens are automatically refreshed when they expire
 - **Interceptors**: Axios interceptors handle token attachment and refresh
 - **Session Management**: Logout clears all tokens and UI state
 
 ### Theme Support
+
 - **Light/Dark Modes**: Toggle between light and dark themes
 - **Persistent Settings**: Theme preference saved in localStorage
 - **System Integration**: Respects system dark mode preference
 
 ### Responsive Design
+
 - **Mobile-first**: Works perfectly on mobile devices
 - **Grid Layouts**: Responsive grid system for forms
 - **Touch-friendly**: Large buttons and touch targets
 
 ## File Structure
 
-```
+```bash
 frontend/
 ├── index.html          # Main HTML file with UI structure
 ├── app.js             # JavaScript application logic
@@ -151,17 +161,22 @@ This frontend is designed for **development and testing only**. For production:
 ## Troubleshooting
 
 ### Backend Not Available
+
 If you see CORS errors or connection refused:
-1. Make sure the backend is running on http://127.0.0.1:8000
+
+1. Make sure the backend is running on <http://127.0.0.1:8000>
 2. Check that CORS is properly configured in the backend
 
 ### Port Already in Use
+
 If port 3000 is busy:
+
 ```bash
 python server.py 3001
 ```
 
 ### Tokens Not Working
+
 1. Check the API response panel for error details
 2. Try logging out and logging back in
 3. Verify the backend secret key matches

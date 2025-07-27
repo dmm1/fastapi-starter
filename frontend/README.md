@@ -1,6 +1,6 @@
-Welcome to your new TanStack app! 
+# Welcome to your new TanStack app
 
-# Getting Started
+## Getting Started
 
 To run this application:
 
@@ -9,7 +9,7 @@ npm install
 npm run start  
 ```
 
-# Building For Production
+## Building For Production
 
 To build this application for production:
 
@@ -29,9 +29,7 @@ npm run test
 
 This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
 
-
 ## Linting & Formatting
-
 
 This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:
 
@@ -41,7 +39,6 @@ npm run format
 npm run check
 ```
 
-
 ## Shadcn
 
 Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
@@ -49,7 +46,6 @@ Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
 ```bash
 pnpx shadcn@latest add button
 ```
-
 
 ## T3Env
 
@@ -65,12 +61,8 @@ import { env } from "@/env";
 console.log(env.VITE_APP_TITLE);
 ```
 
-
-
-
-
-
 ## Routing
+
 This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a code based router. Which means that the routes are defined in code (in the `./src/main.tsx` file). If you like you can also use a file based routing setup by following the [File Based Routing](https://tanstack.com/router/latest/docs/framework/react/guide/file-based-routing) guide.
 
 ### Adding A Route
@@ -131,7 +123,6 @@ More information on the `Link` component can be found in the [Link documentation
 
 ### Using A Layout
 
-
 Layouts can be used to wrap the contents of the routes in menus, headers, footers, etc.
 
 There is already a layout in the `src/main.tsx` file:
@@ -171,7 +162,6 @@ const rootRoute = createRootRoute({
 The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
 
 More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
 
 ### Migrating To File Base Routing
 
@@ -509,10 +499,10 @@ Once we've created the derived store we can use it in the `App` component just l
 
 You can find out everything you need to know on how to use TanStack Store in the [TanStack Store documentation](https://tanstack.com/store/latest).
 
-# Demo files
+## Demo files
 
 Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
 
-# Learn More
+## Learn More
 
 You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
