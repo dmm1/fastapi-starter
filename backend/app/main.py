@@ -3,7 +3,7 @@ Main FastAPI application entry point.
 """
 
 import asyncio
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -17,6 +17,7 @@ from app.core.custom_rate_limiting import (
     cleanup_rate_limiter,
 )
 from app.core.security_middleware import SecurityHeadersMiddleware
+from app.api.deps import get_current_admin_user
 from datetime import datetime
 
 
@@ -126,8 +127,8 @@ async def health_check(request: Request):
 
 
 @app.get("/metrics")
-async def get_metrics(request: Request):
-    """Get application metrics (for monitoring systems)."""
+async def get_metrics(request: Request, current_user=Depends(get_current_admin_user)):
+    """Get application metrics (for monitoring systems). Only accessible by admin users."""
     return metrics_collector.get_metrics()
 
 
