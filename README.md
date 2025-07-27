@@ -39,13 +39,15 @@ Fastapi-Starter/
 
 ### Backend (FastAPI)
 - ✅ **Modern Architecture**: Modular FastAPI with separation of concerns
-- ✅ **JWT Authentication**: Access and refresh tokens
+- ✅ **JWT Authentication**: Access and refresh tokens with role information
+- ✅ **Role-Based Access Control (RBAC)**: Flexible role management system
 - ✅ **SQLite Database**: Persistent storage with SQLAlchemy ORM
 - ✅ **User Management**: Registration, login, profile updates
 - ✅ **Admin Panel**: Admin-only user management endpoints
 - ✅ **API Versioning**: Clean `/api/v1/` endpoints
 - ✅ **OAuth2 Compatible**: Standard OAuth2 password flow
 - ✅ **Auto Documentation**: Swagger UI at `/docs`
+- ✅ **Enhanced Security**: Password policies and security headers
 - 🆕 **Rate Limiting**: SlowAPI integration with Redis support
 - 🆕 **Monitoring**: Comprehensive metrics and health checks
 - 🆕 **Structured Logging**: JSON-formatted security event logging
@@ -97,11 +99,13 @@ The system creates a default admin user from your `.env` configuration:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/v1/auth/register` | Register new user |
-| POST | `/api/v1/auth/login` | Login with credentials |
+| POST | `/api/v1/auth/register` | Register new user (with password validation) |
+| POST | `/api/v1/auth/login` | Login with credentials (returns roles in token) |
 | POST | `/api/v1/auth/refresh` | Refresh access token |
 | GET | `/api/v1/users/me` | Get current user info |
 | GET | `/api/v1/users/` | Get all users (admin) |
+| GET | `/api/v1/roles/` | Get all available roles |
+| POST | `/api/v1/roles/assign` | Assign roles to user (admin) |
 | GET | `/health` | Health check with system metrics |
 | GET | `/metrics` | Application metrics (monitoring) |
 | GET | `/status` | Basic application status |
@@ -163,10 +167,13 @@ The system creates a default admin user from your `.env` configuration:
 ## 🔒 Security Features
 
 - **Password Hashing**: Bcrypt with salt
-- **JWT Tokens**: HS256 algorithm with expiration
+- **JWT Tokens**: HS256 algorithm with expiration and role information
 - **Token Refresh**: Automatic token renewal
 - **CORS Protection**: Configurable origins
-- **Admin Permissions**: Role-based access control
+- **Role-Based Access Control**: Flexible multi-role system
+- **Password Policy**: Strong password requirements
+- **Security Headers**: Comprehensive security headers on all responses
+- **Token Versioning**: Support for future token invalidation
 
 ## 📝 Environment Configuration
 
@@ -270,6 +277,7 @@ npm install axios
 
 - **Backend README**: `backend/README.md` - Detailed API documentation
 - **Frontend README**: `frontend/README.md` - Test interface guide
+- **RBAC Documentation**: `RBAC_DOCUMENTATION.md` - Role-based access control guide
 - **Rate Limiting & Monitoring**: `RATE_LIMITING_AND_MONITORING.md` - Production features guide
 - **API Docs**: Available at `/docs` when backend is running
 

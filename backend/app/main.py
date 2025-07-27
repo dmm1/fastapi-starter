@@ -10,6 +10,7 @@ from app.api.v1.api import api_router
 from app.db.session import create_tables, init_db
 from app.core.monitoring import MonitoringMiddleware, metrics_collector, logger
 from app.core.rate_limiting import limiter, rate_limit_handler, RateLimits
+from app.core.security_middleware import SecurityHeadersMiddleware
 from slowapi.errors import RateLimitExceeded
 from datetime import datetime
 
@@ -33,6 +34,9 @@ def create_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Add security headers middleware
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # Add monitoring middleware
     app.add_middleware(MonitoringMiddleware)

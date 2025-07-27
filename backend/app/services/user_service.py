@@ -1,5 +1,5 @@
 """
-User service layer for business logic.
+User service for managing user operations with RBAC support.
 """
 
 from typing import Optional, List
@@ -7,11 +7,13 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 from app.core.security import get_password_hash, verify_password
+from app.services.role_service import RoleService
+from app.models.role import RoleType
 from datetime import datetime
 
 
 class UserService:
-    """Service class for user operations."""
+    """Service class for user operations with role management."""
 
     @staticmethod
     def get_by_email(db: Session, email: str) -> Optional[User]:
@@ -35,7 +37,7 @@ class UserService:
 
     @staticmethod
     def create(db: Session, user_create: UserCreate) -> User:
-        """Create a new user."""
+        """Create a new user with role assignment."""
         # Check if user already exists
         if UserService.get_by_email(db, user_create.email):
             raise ValueError("User with this email already exists")
@@ -58,11 +60,20 @@ class UserService:
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
+
+        # Assign roles
+        if hasattr(user_create, 'roles') and user_create.roles:
+            for role in user_create.roles:
+                RoleService.assign_role_to_user(db, db_user, role.value if isinstance(role, RoleType) else role)
+        else:
+            # Assign default role
+            RoleService.assign_default_role(db, db_user)
+
         return db_user
 
     @staticmethod
     def update(db: Session, user_id: int, user_update: UserUpdate) -> Optional[User]:
-        """Update user."""
+        """Update user with role management."""
         user = UserService.get_by_id(db, user_id)
         if not user:
             return None
@@ -76,8 +87,18 @@ class UserService:
             if UserService.get_by_username(db, user_update.username):
                 raise ValueError("User with this username already exists")
 
-        # Update fields
-        update_data = user_update.dict(exclude_unset=True)
+        # Handle role updates separately
+        update_data = user_update.model_dump(exclude_unset=True) if hasattr(user_update, 'model_dump') else user_update.dict(exclude_unset=True)
+        
+        if "roles" in update_data:
+            roles_to_assign = update_data.pop("roles")
+            # Clear existing roles and assign new ones
+            user.roles.clear()
+            for role in roles_to_assign:
+                role_name = role.value if isinstance(role, RoleType) else role
+                RoleService.assign_role_to_user(db, user, role_name)
+
+        # Update other fields
         for field, value in update_data.items():
             setattr(user, field, value)
 

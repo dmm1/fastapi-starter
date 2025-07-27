@@ -4,16 +4,16 @@ Core configuration and settings for the Fastapi-Starter Backend API.
 
 from typing import List, Union
 from pydantic_settings import BaseSettings
-from pydantic import validator
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
-    """Application settings."""
+    """Application settings with enhanced security and Python 3.12+ features."""
 
     # API Configuration
     app_name: str = "Fastapi-Starter Backend API"
-    version: str = "1.0.0"
-    description: str = "A modern authentication system with FastAPI"
+    version: str = "2.0.0"  # Updated version for RBAC support
+    description: str = "A modern authentication system with FastAPI and RBAC"
 
     # Security
     SECRET_KEY: str
@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "sqlite:///./data/auth.db"
 
-    # CORS
+    # CORS - Using Python 3.12 union syntax would be List[str] | str but keeping compatible
     backend_cors_origins: List[str] = ["*"]  # Configure properly in production
 
     # Admin User - These MUST be set in .env file
@@ -37,7 +37,15 @@ class Settings(BaseSettings):
     admin_username: str
     admin_password: str
 
-    @validator("backend_cors_origins", pre=True)
+    # Password policy settings
+    min_password_length: int = 8
+    require_uppercase: bool = True
+    require_lowercase: bool = True
+    require_numbers: bool = True
+    require_special_chars: bool = True
+
+    @field_validator("backend_cors_origins", mode="before")
+    @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
