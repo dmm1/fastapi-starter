@@ -5,6 +5,7 @@ A secure FastAPI-based authentication system with JWT tokens, user management, a
 ## Features
 
 - ✅ **Secure Authentication**: JWT access and refresh tokens
+- ✅ **Session Management**: Redis-backed session tracking with device information
 - ✅ **User Registration & Login**: Email-based authentication  
 - ✅ **Token Refresh**: Seamless token renewal
 - ✅ **User Management**: Profile updates and admin controls
@@ -13,12 +14,16 @@ A secure FastAPI-based authentication system with JWT tokens, user management, a
 - ✅ **Password Hashing**: Secure bcrypt password hashing
 - ✅ **CORS Support**: Cross-origin requests enabled
 - ✅ **SQLite Database**: Persistent data storage with SQLAlchemy ORM
+- ✅ **Custom Rate Limiting**: High-performance configurable rate limiting
+- ✅ **Security Middleware**: CSRF protection, security headers, session validation
+- ✅ **Monitoring**: Comprehensive metrics and health checks
 - ✅ **Modular Architecture**: Clean separation of concerns
 - ✅ **API Versioning**: Versioned API endpoints under `/api/v1/`
 
 ## Quick Start
 
 1. **Setup Environment**:
+
    ```bash
    cp .env.example .env
    # Generate a secure secret key (optional)
@@ -27,23 +32,26 @@ A secure FastAPI-based authentication system with JWT tokens, user management, a
    ```
 
 2. **Install Dependencies**:
+
    ```bash
    pip install -r requirements.txt
    ```
 
 3. **Start the Server**:
+
    ```bash
    python run.py
    ```
 
-4. **Access Documentation**: 
-   - API Docs: http://127.0.0.1:8000/docs
-   - OpenAPI Schema: http://127.0.0.1:8000/openapi.json
-   - Health Check: http://127.0.0.1:8000/health
+4. **Access Documentation**:
+   - API Docs: <http://127.0.0.1:8000/docs>
+   - OpenAPI Schema: <http://127.0.0.1:8000/openapi.json>
+   - Health Check: <http://127.0.0.1:8000/health>
 
 ## Default Admin User
 
 A default admin user is created automatically from your `.env` configuration:
+
 - **Email**: Set via `ADMIN_EMAIL` in `.env`
 - **Password**: Set via `ADMIN_PASSWORD` in `.env`
 - **Username**: Set via `ADMIN_USERNAME` in `.env`
@@ -68,6 +76,8 @@ A default admin user is created automatically from your `.env` configuration:
 |--------|----------|-------------|---------------|
 | GET | `/api/v1/users/me` | Get current user info | Yes |
 | PUT | `/api/v1/users/me` | Update current user | Yes |
+| GET | `/api/v1/sessions/` | Get user's active sessions | Yes |
+| DELETE | `/api/v1/sessions/{session_id}` | Delete specific session | Yes |
 
 ### Admin Only
 
@@ -82,6 +92,7 @@ A default admin user is created automatically from your `.env` configuration:
 |--------|----------|-------------|---------------|
 | GET | `/` | API info | No |
 | GET | `/health` | Health check | No |
+| GET | `/metrics` | Application metrics | Admin |
 
 ## Authentication Flow
 
@@ -106,12 +117,12 @@ curl -X POST "http://127.0.0.1:8000/api/v1/auth/login" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
+  {
     "password": "securepassword123"
-  }'
+  }
 ```
-    "password": "securepassword123"
-  }'
-```
+
+```bash
 
 Response:
 ```json
@@ -179,17 +190,23 @@ curl -X POST "http://127.0.0.1:8000/api/v1/auth/logout" \
 ## Security Features
 
 - **JWT Tokens**: Secure token-based authentication
+- **Session Management**: Redis-backed session tracking with device information
 - **Password Hashing**: Bcrypt with salt
 - **Token Expiration**: Access tokens expire in 30 minutes
 - **Refresh Tokens**: Long-lived tokens for renewal (7 days)
-- **Token Invalidation**: Logout invalidates refresh tokens
+- **Session Cookies**: Secure, HttpOnly cookies for enhanced security
+- **Token Invalidation**: Logout invalidates refresh tokens and sessions
+- **Custom Rate Limiting**: Configurable rate limits for different endpoint types
+- **Security Middleware**: CSRF protection, security headers, session validation
 - **Admin Protection**: Admin-only endpoints require admin privileges
+- **Session Tracking**: Track login devices, browsers, and IP addresses
+- **Remote Logout**: Users can terminate sessions from other devices
 
 ## Architecture & File Structure
 
 This backend follows modern FastAPI best practices with a modular architecture:
 
-```
+```bash
 backend/
 ├── run.py                    # Server entry point
 ├── .env                      # Environment variables
@@ -241,11 +258,14 @@ backend/
 1. **Secret Key**: Use a strong, randomly generated secret key (configure in `.env`)
 2. **Database**: SQLite is used for development; consider PostgreSQL/MySQL for production
 3. **CORS**: Configure CORS origins for your frontend domains
-4. **HTTPS**: Use HTTPS in production
-5. **Rate Limiting**: Add rate limiting for login attempts
-6. **Logging**: Add comprehensive logging
-7. **Monitoring**: Set up health checks and monitoring
-8. **Environment**: Use different configurations for dev/staging/production
+4. **HTTPS**: Use HTTPS in production and set `SECURE_COOKIES=true`
+5. **Redis**: Use Redis for session storage and rate limiting in production
+6. **Rate Limiting**: Configure appropriate rate limits via environment variables
+7. **Monitoring**: Use `/metrics` endpoint for application monitoring
+8. **Session Security**: Set `HTTPS_ONLY=true` in production environments
+9. **Logging**: Comprehensive structured logging for security events
+10. **Monitoring**: Set up health checks and monitoring
+11. **Environment**: Use different configurations for dev/staging/production
 
 ## Environment Variables
 
@@ -292,6 +312,7 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 ## OAuth2 Schema Compliance
 
 The API follows OAuth2 password flow standards:
+
 - Uses Bearer token authentication
 - Provides both access and refresh tokens
 - Compatible with OAuth2 clients

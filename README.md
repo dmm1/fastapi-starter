@@ -40,6 +40,7 @@ Press `Ctrl+C` to stop both servers.
 - ✅ **Static File Serving**: Avatars served via `/static/avatars/`
 - ✅ **Modern Architecture**: Modular FastAPI with separation of concerns
 - ✅ **JWT Authentication**: Access and refresh tokens with role information
+- ✅ **Secure Session Management**: Redis-backed session tracking with device information
 - ✅ **Role-Based Access Control (RBAC)**: Flexible role management system
 - ✅ **SQLite Database**: Persistent storage with SQLAlchemy ORM
 - ✅ **User Management**: Registration, login, profile updates
@@ -48,7 +49,8 @@ Press `Ctrl+C` to stop both servers.
 - ✅ **OAuth2 Compatible**: Standard OAuth2 password flow
 - ✅ **Auto Documentation**: Swagger UI at `/docs`
 - ✅ **Enhanced Security**: Password policies and security headers
-- 🆕 **Rate Limiting**: SlowAPI integration with Redis support
+- 🆕 **Custom Rate Limiting**: High-performance rate limiting with configurable limits
+- 🆕 **Session Tracking**: Track active sessions with device info and IP addresses
 - 🆕 **Monitoring**: Comprehensive metrics and health checks
 - 🆕 **Structured Logging**: JSON-formatted security event logging
 - 🆕 **Production Ready**: Enhanced security and observability
@@ -84,6 +86,24 @@ Fastapi-Starter/
 - **Role Badges**: Visual role indicators
 - **Search**: Filter users by name/email
 
+## 🔐 Session Management
+
+- **Secure Sessions**: Redis-backed session storage with database fallback
+- **Device Tracking**: Track login device, browser, and IP address information
+- **Session List**: View all active sessions in user profile
+- **Remote Logout**: Delete sessions from other devices
+- **Automatic Cleanup**: Expired sessions are automatically removed
+- **Session Cookies**: Secure, HttpOnly cookies for enhanced security
+
+## ⚡ Rate Limiting & Security
+
+- **Custom Rate Limiting**: High-performance in-memory rate limiting
+- **Configurable Limits**: Environment-based rate limit configuration
+- **Endpoint-Specific**: Different limits for auth, API, and admin endpoints
+- **Security Headers**: CSRF protection, HSTS, and content security policies
+- **Monitoring**: Real-time metrics and health checks
+- **Admin Protection**: Special rate limits for admin operations
+
 ## 📝 API Endpoints (Key additions)
 
 | Method | Endpoint | Description |
@@ -91,13 +111,49 @@ Fastapi-Starter/
 | POST   | `/api/v1/users/me/avatar` | Upload user avatar |
 | DELETE | `/api/v1/users/me/avatar` | Delete user avatar |
 | GET    | `/static/avatars/{filename}` | Serve avatar image |
+| GET    | `/api/v1/sessions/` | Get user's active sessions |
+| DELETE | `/api/v1/sessions/{session_id}` | Delete specific session |
+| GET    | `/metrics` | Application metrics (admin only) |
 
 ## 🧑‍💻 Frontend Usage
 
 - **Login/Register**: Modern forms, error handling, dark mode
-- **Profile**: Edit info, change password, manage avatar
+- **Profile**: Edit info, change password, manage avatar, view active sessions
+- **Session Management**: View and delete active sessions from other devices
 - **Admin**: Manage users, roles, avatars
 - **Theme Toggle**: Top right in header
+
+## ⚙️ Configuration
+
+The application supports extensive configuration via environment variables:
+
+### Security & Authentication
+
+```bash
+SECRET_KEY=your-secret-key
+SECURE_COOKIES=false  # Set to true in production
+HTTPS_ONLY=false      # Set to true in production
+```
+
+### Rate Limiting
+
+```bash
+DEFAULT_RATE_LIMIT=1000 per hour
+AUTH_LOGIN_RATE_LIMIT=5 per minute
+AUTH_REGISTER_RATE_LIMIT=3 per minute
+API_GENERAL_RATE_LIMIT=100 per minute
+ADMIN_OPERATIONS_RATE_LIMIT=50 per minute
+```
+
+### Session & Redis
+
+```bash
+REDIS_URL=redis://localhost:6379
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
+```
+
+See `backend/.env.example` for all available configuration options.
 
 ## 🏁 Next Steps
 
