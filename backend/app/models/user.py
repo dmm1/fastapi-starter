@@ -3,11 +3,12 @@ SQLAlchemy database models.
 """
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy.orm import relationship
 from app.db.base import Base
 
 
 class User(Base):
-    """User database model."""
+    """User database model with RBAC support."""
     
     __tablename__ = "users"
 
@@ -16,6 +17,17 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
-    is_admin = Column(Boolean, default=False)
+    is_admin = Column(Boolean, default=False)  # Keep for backward compatibility
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Many-to-many relationship with roles
+    roles = relationship("Role", secondary="user_roles", back_populates="users")
+    
+    def has_role(self, role_name: str) -> bool:
+        """Check if user has a specific role."""
+        return any(role.name == role_name for role in self.roles)
+    
+    def get_role_names(self) -> list[str]:
+        """Get list of role names for this user."""
+        return [role.name for role in self.roles]

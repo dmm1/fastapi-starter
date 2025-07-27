@@ -23,7 +23,7 @@ def get_password_hash(password: str) -> str:
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """Create JWT access token."""
+    """Create JWT access token with enhanced payload."""
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -32,7 +32,12 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
             minutes=settings.access_token_expire_minutes
         )
 
-    to_encode.update({"exp": expire, "type": "access"})
+    to_encode.update({
+        "exp": expire, 
+        "type": "access",
+        "iat": datetime.utcnow(),
+        "token_version": 1  # For future token invalidation
+    })
     encoded_jwt = jwt.encode(
         to_encode, settings.secret_key, algorithm=settings.algorithm
     )
@@ -47,16 +52,28 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) 
     else:
         expire = datetime.utcnow() + timedelta(days=settings.refresh_token_expire_days)
 
-    to_encode.update({"exp": expire, "type": "refresh"})
+    to_encode.update({
+        "exp": expire, 
+        "type": "refresh",
+        "iat": datetime.utcnow(),
+        "token_version": 1
+    })
     encoded_jwt = jwt.encode(
         to_encode, settings.secret_key, algorithm=settings.algorithm
     )
     return encoded_jwt
 
 
-def create_tokens(user_id: int, email: str) -> dict:
-    """Create both access and refresh tokens."""
-    access_token = create_access_token(data={"sub": str(user_id), "email": email})
+def create_tokens(user_id: int, email: str, roles: list[str]) -> dict:
+    """Create both access and refresh tokens with role information."""
+    token_data = {
+        "sub": str(user_id), 
+        "email": email,
+        "roles": roles,  # Include user roles in token
+        "is_admin": "admin" in roles  # Backward compatibility
+    }
+    
+    access_token = create_access_token(data=token_data)
     refresh_token = create_refresh_token(data={"sub": str(user_id), "email": email})
 
     return {
@@ -85,3 +102,23 @@ def verify_token(token: str, token_type: str = "access") -> Optional[dict]:
         return payload
     except JWTError:
         return None
+
+
+def validate_password_strength(password: str) -> tuple[bool, str]:
+    """Validate password meets security requirements."""
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long"
+    
+    if not any(c.isupper() for c in password):
+        return False, "Password must contain at least one uppercase letter"
+    
+    if not any(c.islower() for c in password):
+        return False, "Password must contain at least one lowercase letter"
+    
+    if not any(c.isdigit() for c in password):
+        return False, "Password must contain at least one digit"
+    
+    if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password):
+        return False, "Password must contain at least one special character"
+    
+    return True, "Password is valid"

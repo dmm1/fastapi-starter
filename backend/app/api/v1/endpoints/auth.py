@@ -51,7 +51,7 @@ def login_json(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    tokens = create_tokens(user.id, user.email)
+    tokens = create_tokens(user.id, user.email, user.get_role_names())
     active_refresh_tokens.add(tokens["refresh_token"])
     logger.info("User logged in successfully", user_id=user.id, email=user.email)
     return tokens
@@ -77,7 +77,7 @@ def login_form(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    tokens = create_tokens(user.id, user.email)
+    tokens = create_tokens(user.id, user.email, user.get_role_names())
     active_refresh_tokens.add(tokens["refresh_token"])
     logger.info(
         "User logged in successfully via form", user_id=user.id, email=user.email
@@ -128,7 +128,7 @@ def refresh_token(
 
     # Remove old refresh token and create new tokens
     active_refresh_tokens.discard(refresh_request.refresh_token)
-    tokens = create_tokens(user.id, user.email)
+    tokens = create_tokens(user.id, user.email, user.get_role_names())
     active_refresh_tokens.add(tokens["refresh_token"])
 
     logger.info("Token refreshed successfully", user_id=user.id, email=user.email)
