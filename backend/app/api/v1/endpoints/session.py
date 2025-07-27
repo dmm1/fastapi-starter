@@ -8,7 +8,7 @@ from app.api.deps import get_current_active_user
 router = APIRouter()
 
 
-@router.get("/sessions", response_model=list[SessionOut])
+@router.get("/", response_model=list[SessionOut])
 async def list_sessions(
     db: DBSession = Depends(get_db),
     current_user=Depends(get_current_active_user),
@@ -17,7 +17,7 @@ async def list_sessions(
     return SessionService.get_sessions(db, current_user.id)
 
 
-@router.delete("/sessions/{session_id}")
+@router.delete("/{session_id}")
 async def delete_session(
     session_id: int,
     db: DBSession = Depends(get_db),
