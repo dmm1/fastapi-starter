@@ -3,12 +3,14 @@ Authentication endpoints.
 """
 
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.db.session import get_db
+from app.core.config import settings
 from app.schemas.user import Token, LoginRequest, RefreshTokenRequest, UserCreate, User
 from app.services.user_service import UserService
+from app.services.session_service import SessionService
 from app.core.security import create_tokens, verify_token
 from app.api.deps import get_current_active_user, active_refresh_tokens
 from app.core.custom_rate_limiting import rate_limit, CustomRateLimits
@@ -38,7 +40,10 @@ def register(
 @router.post("/login", response_model=Token)
 @rate_limit(CustomRateLimits.AUTH_LOGIN)
 def login_json(
-    request: Request, login_request: LoginRequest, db: Session = Depends(get_db)
+    request: Request,
+    login_request: LoginRequest,
+    response: Response,
+    db: Session = Depends(get_db),
 ) -> Any:
     """Login with JSON payload."""
     logger.info("Login attempt", email=login_request.email)
@@ -51,8 +56,23 @@ def login_json(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    tokens = create_tokens(user.id, user.email, user.get_role_names())
+    tokens = create_tokens(
+        getattr(user, "id"), getattr(user, "email"), user.get_role_names()
+    )
     active_refresh_tokens.add(tokens["refresh_token"])
+    # Create session and set cookie
+    user_agent = request.headers.get("user-agent", "")
+    ip_address = request.client.host if request.client else ""
+    session_obj = SessionService.create_session(db, user, user_agent, ip_address)
+    response.set_cookie(
+        key="session_token",
+        value=getattr(session_obj, "token"),
+        httponly=True,
+        secure=settings.secure_cookies,  # Configurable for dev/prod
+        samesite="strict",  # Enhanced CSRF protection
+        max_age=86400,
+        path="/",
+    )
     logger.info("User logged in successfully", user_id=user.id, email=user.email)
     return tokens
 
@@ -61,6 +81,7 @@ def login_json(
 @rate_limit(CustomRateLimits.AUTH_LOGIN)
 def login_form(
     request: Request,
+    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ) -> Any:
@@ -77,8 +98,23 @@ def login_form(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    tokens = create_tokens(user.id, user.email, user.get_role_names())
+    tokens = create_tokens(
+        getattr(user, "id"), getattr(user, "email"), user.get_role_names()
+    )
     active_refresh_tokens.add(tokens["refresh_token"])
+    # Create session and set cookie
+    user_agent = request.headers.get("user-agent", "")
+    ip_address = request.client.host if request.client else ""
+    session_obj = SessionService.create_session(db, user, user_agent, ip_address)
+    response.set_cookie(
+        key="session_token",
+        value=getattr(session_obj, "token"),
+        httponly=True,
+        secure=settings.secure_cookies,  # Configurable for dev/prod
+        samesite="strict",  # Enhanced CSRF protection
+        max_age=86400,
+        path="/",
+    )
     logger.info(
         "User logged in successfully via form", user_id=user.id, email=user.email
     )
@@ -128,7 +164,9 @@ def refresh_token(
 
     # Remove old refresh token and create new tokens
     active_refresh_tokens.discard(refresh_request.refresh_token)
-    tokens = create_tokens(user.id, user.email, user.get_role_names())
+    tokens = create_tokens(
+        getattr(user, "id"), getattr(user, "email"), user.get_role_names()
+    )
     active_refresh_tokens.add(tokens["refresh_token"])
 
     logger.info("Token refreshed successfully", user_id=user.id, email=user.email)
@@ -139,13 +177,20 @@ def refresh_token(
 @rate_limit(CustomRateLimits.API_GENERAL)
 def logout(
     request: Request,
-    refresh_request: RefreshTokenRequest,
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> Any:
-    """Logout user."""
-    active_refresh_tokens.discard(refresh_request.refresh_token)
+    """Logout user and invalidate session."""
+    session_token = request.cookies.get("session_token")
+    if session_token:
+        SessionService.delete_session_by_token(db, session_token)
+
     logger.info("User logged out", user_id=current_user.id, email=current_user.email)
-    return {"message": "Successfully logged out"}
+    response = Response(
+        content='{"message": "Successfully logged out"}', media_type="application/json"
+    )
+    response.delete_cookie("session_token", path="/")
+    return response
 
 
 @router.get("/me", response_model=User)

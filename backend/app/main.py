@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.gzip import GZipMiddleware
 from pathlib import Path
 from app.core.config import settings
 from app.api.v1.api import api_router
@@ -18,6 +19,7 @@ from app.core.custom_rate_limiting import (
 )
 from app.core.security_middleware import SecurityHeadersMiddleware
 from app.api.deps import get_current_admin_user
+from app.core.session_middleware import SessionValidationMiddleware
 from datetime import datetime
 
 
@@ -48,7 +50,15 @@ def create_application() -> FastAPI:
     app.add_middleware(MonitoringMiddleware)
 
     # Add custom rate limiting middleware
-    app.add_middleware(CustomRateLimitMiddleware, default_rate="1000 per hour")
+    app.add_middleware(
+        CustomRateLimitMiddleware, default_rate=settings.default_rate_limit
+    )
+
+    # Add session validation middleware (JWT + session)
+    app.add_middleware(SessionValidationMiddleware)
+
+    # Enable Gzip compression for responses
+    app.add_middleware(GZipMiddleware, minimum_size=500)
 
     # Include API router
     app.include_router(api_router, prefix="/api/v1")
@@ -76,6 +86,25 @@ async def startup_event():
     # Start rate limiter cleanup task
     asyncio.create_task(cleanup_rate_limiter())
     logger.info("Rate limiter cleanup task started")
+
+    # Start session cleanup task
+    async def cleanup_sessions():
+        while True:
+            try:
+                from app.services.session_service import SessionService
+                from app.db.session import SessionLocal
+
+                db = SessionLocal()
+                cleaned = SessionService.cleanup_expired_sessions(db)
+                if cleaned > 0:
+                    logger.info(f"Cleaned up {cleaned} expired sessions")
+                db.close()
+            except Exception as e:
+                logger.error(f"Session cleanup error: {e}")
+            await asyncio.sleep(3600)  # Run every hour
+
+    asyncio.create_task(cleanup_sessions())
+    logger.info("Session cleanup task started")
 
 
 @app.on_event("shutdown")

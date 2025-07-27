@@ -44,7 +44,7 @@ class MetricsCollector:
         self.active_connections = 0
         self.start_time = datetime.now()
         self.endpoint_stats = defaultdict(
-            lambda: {"count": 0, "total_time": 0, "errors": 0, "avg_time": 0}
+            lambda: {"count": 0, "total_time": 0.0, "errors": 0, "avg_time": 0.0}
         )
 
         # Store recent requests (last 1000)

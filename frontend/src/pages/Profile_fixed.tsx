@@ -11,16 +11,17 @@ import {
 import { Button } from "../components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { AvatarManager } from "../components/AvatarManager";
 import { useAuthStore } from "../stores/auth";
 import { useAuthGuard } from "../hooks/useAuthGuard";
+import { useSessions } from "../hooks/useSessions";
 
 export default function ProfilePage() {
     const { isAuthenticated, user } = useAuthGuard();
     const { updateProfile, changePassword, isLoading, error } = useAuthStore();
+    const { sessions, loading: sessionsLoading, error: sessionsError, deleteSession } = useSessions();
     const [isEditing, setIsEditing] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [showPasswords, setShowPasswords] = useState({
@@ -113,8 +114,6 @@ export default function ProfilePage() {
         setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     }
 
-    const currentAvatarUrl = user?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.firstname || user?.username}`;
-
     return (
         <div className="flex-1 space-y-8 p-8 pt-6">
             <div className="flex items-center justify-between space-y-2">
@@ -128,8 +127,8 @@ export default function ProfilePage() {
 
             {message && (
                 <div className={`p-4 rounded-md border ${message.type === 'success'
-                        ? 'bg-green-50 text-green-800 border-green-200'
-                        : 'bg-red-50 text-red-800 border-red-200'
+                    ? 'bg-green-50 text-green-800 border-green-200'
+                    : 'bg-red-50 text-red-800 border-red-200'
                     }`}>
                     {message.text}
                 </div>
@@ -444,6 +443,32 @@ export default function ProfilePage() {
                         )}
                     </CardContent>
                 </Card>
+            </div>
+
+            {/* Active Sessions */}
+            <div className="mt-8">
+                <h2 className="text-lg font-semibold mb-2">Active Sessions</h2>
+                {sessionsLoading ? (
+                    <div>Loading sessions...</div>
+                ) : sessionsError ? (
+                    <div className="text-red-500">{sessionsError}</div>
+                ) : (
+                    <ul className="space-y-2">
+                        {sessions.map((session: any) => (
+                            <li key={session.id} className="flex items-center justify-between p-2 border rounded">
+                                <div>
+                                    <div><b>Device:</b> {session.user_agent || "Unknown"}</div>
+                                    <div><b>IP:</b> {session.ip_address || "Unknown"}</div>
+                                    <div><b>Created:</b> {new Date(session.created_at).toLocaleString()}</div>
+                                    <div><b>Expires:</b> {session.expires_at ? new Date(session.expires_at).toLocaleString() : "-"}</div>
+                                </div>
+                                <Button variant="destructive" size="sm" onClick={() => deleteSession(session.id)}>
+                                    Logout
+                                </Button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
         </div>
     );

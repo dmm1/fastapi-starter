@@ -43,7 +43,46 @@ class Settings(BaseSettings):
     require_lowercase: bool = True
     require_numbers: bool = True
     require_special_chars: bool = True
-    createmin: bool = Field(default=False, alias="CREATEMIN")  # If True, create admin user on startup
+    createmin: bool = Field(
+        default=False, alias="CREATEMIN"
+    )  # If True, create admin user on startup
+
+    # SSL/Security Configuration
+    secure_cookies: bool = Field(default=False, alias="SECURE_COOKIES")
+    https_only: bool = Field(default=False, alias="HTTPS_ONLY")
+
+    # Rate Limiting Configuration
+    default_rate_limit: str = Field(default="1000 per hour", alias="DEFAULT_RATE_LIMIT")
+
+    # Authentication Rate Limits
+    auth_login_rate_limit: str = Field(
+        default="5 per minute", alias="AUTH_LOGIN_RATE_LIMIT"
+    )
+    auth_register_rate_limit: str = Field(
+        default="3 per minute", alias="AUTH_REGISTER_RATE_LIMIT"
+    )
+    auth_refresh_rate_limit: str = Field(
+        default="10 per minute", alias="AUTH_REFRESH_RATE_LIMIT"
+    )
+
+    # API Rate Limits
+    api_general_rate_limit: str = Field(
+        default="100 per minute", alias="API_GENERAL_RATE_LIMIT"
+    )
+    api_user_profile_rate_limit: str = Field(
+        default="30 per minute", alias="API_USER_PROFILE_RATE_LIMIT"
+    )
+
+    # Admin Rate Limits
+    admin_operations_rate_limit: str = Field(
+        default="50 per minute", alias="ADMIN_OPERATIONS_RATE_LIMIT"
+    )
+
+    # Monitoring Rate Limits
+    health_check_rate_limit: str = Field(
+        default="60 per minute", alias="HEALTH_CHECK_RATE_LIMIT"
+    )
+    metrics_rate_limit: str = Field(default="10 per minute", alias="METRICS_RATE_LIMIT")
 
     @field_validator("backend_cors_origins", mode="before")
     @classmethod
@@ -55,9 +94,7 @@ class Settings(BaseSettings):
         raise ValueError(v)
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_prefix="",
-        extra="allow"  # Allow extra fields from .env
+        env_file=".env", env_prefix="", extra="allow"  # Allow extra fields from .env
     )
 
 

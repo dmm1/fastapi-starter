@@ -32,6 +32,9 @@ class User(Base):
     # Many-to-many relationship with roles
     roles = relationship("Role", secondary="user_roles", back_populates="users")
 
+    # One-to-many relationship with sessions
+    sessions = relationship("Session", back_populates="user")
+
     def has_role(self, role_name: str) -> bool:
         """Check if user has a specific role."""
         return any(role.name == role_name for role in self.roles)

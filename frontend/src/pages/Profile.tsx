@@ -16,10 +16,12 @@ import { Label } from "../components/ui/label";
 import { AvatarManager } from "../components/AvatarManager";
 import { useAuthStore } from "../stores/auth";
 import { useAuthGuard } from "../hooks/useAuthGuard";
+import { useSessions } from "../hooks/useSessions";
 
 export default function ProfilePage() {
     const { isAuthenticated, user } = useAuthGuard();
     const { updateProfile, changePassword, refreshUser, isLoading, error } = useAuthStore();
+    const { sessions, loading: sessionsLoading, error: sessionsError, deleteSession } = useSessions();
     const [isEditing, setIsEditing] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [showPasswords, setShowPasswords] = useState({
@@ -444,6 +446,68 @@ export default function ProfilePage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Active Sessions */}
+            <Card className="mt-8">
+                <CardHeader>
+                    <CardTitle>Active Sessions</CardTitle>
+                    <CardDescription>
+                        Manage your active login sessions across different devices
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {sessionsLoading ? (
+                        <div className="text-center py-4">Loading sessions...</div>
+                    ) : sessionsError ? (
+                        <div className="text-red-500 text-center py-4">{sessionsError}</div>
+                    ) : sessions.length === 0 ? (
+                        <div className="text-gray-500 text-center py-4">No active sessions</div>
+                    ) : (
+                        <div className="space-y-4">
+                            {sessions.map((session) => (
+                                <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
+                                    <div className="space-y-1">
+                                        <div className="flex items-center space-x-2">
+                                            <span className="font-medium">Device:</span>
+                                            <span className="text-sm text-gray-600">
+                                                {session.user_agent || "Unknown Device"}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <span className="font-medium">IP Address:</span>
+                                            <span className="text-sm text-gray-600">
+                                                {session.ip_address || "Unknown"}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <span className="font-medium">Login Time:</span>
+                                            <span className="text-sm text-gray-600">
+                                                {new Date(session.created_at).toLocaleString()}
+                                            </span>
+                                        </div>
+                                        {session.expires_at && (
+                                            <div className="flex items-center space-x-2">
+                                                <span className="font-medium">Expires:</span>
+                                                <span className="text-sm text-gray-600">
+                                                    {new Date(session.expires_at).toLocaleString()}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => deleteSession(session.id)}
+                                        disabled={sessionsLoading}
+                                    >
+                                        Logout Device
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 }
