@@ -11,14 +11,14 @@ from app.schemas.user import Token, LoginRequest, RefreshTokenRequest, UserCreat
 from app.services.user_service import UserService
 from app.core.security import create_tokens, verify_token
 from app.api.deps import get_current_active_user, active_refresh_tokens
-from app.core.rate_limiting import limiter, RateLimits
+from app.core.custom_rate_limiting import rate_limit, CustomRateLimits
 from app.core.monitoring import logger
 
 router = APIRouter()
 
 
 @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
-@limiter.limit(RateLimits.AUTH_REGISTER)
+@rate_limit(CustomRateLimits.AUTH_REGISTER)
 def register(
     request: Request, user_create: UserCreate, db: Session = Depends(get_db)
 ) -> Any:
@@ -36,7 +36,7 @@ def register(
 
 
 @router.post("/login", response_model=Token)
-@limiter.limit(RateLimits.AUTH_LOGIN)
+@rate_limit(CustomRateLimits.AUTH_LOGIN)
 def login_json(
     request: Request, login_request: LoginRequest, db: Session = Depends(get_db)
 ) -> Any:
@@ -58,7 +58,7 @@ def login_json(
 
 
 @router.post("/login-form", response_model=Token)
-@limiter.limit(RateLimits.AUTH_LOGIN)
+@rate_limit(CustomRateLimits.AUTH_LOGIN)
 def login_form(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -86,7 +86,7 @@ def login_form(
 
 
 @router.post("/refresh", response_model=Token)
-@limiter.limit(RateLimits.AUTH_REFRESH)
+@rate_limit(CustomRateLimits.AUTH_REFRESH)
 def refresh_token(
     request: Request,
     refresh_request: RefreshTokenRequest,
@@ -136,7 +136,7 @@ def refresh_token(
 
 
 @router.post("/logout")
-@limiter.limit(RateLimits.API_GENERAL)
+@rate_limit(CustomRateLimits.API_GENERAL)
 def logout(
     request: Request,
     refresh_request: RefreshTokenRequest,
@@ -149,7 +149,7 @@ def logout(
 
 
 @router.get("/me", response_model=User)
-@limiter.limit(RateLimits.API_GENERAL)
+@rate_limit(CustomRateLimits.API_GENERAL)
 def get_current_user_info(
     request: Request, current_user: User = Depends(get_current_active_user)
 ) -> Any:

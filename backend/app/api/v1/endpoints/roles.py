@@ -10,7 +10,7 @@ from app.schemas.user import Role, UserRoleUpdate, User
 from app.services.role_service import RoleService
 from app.services.user_service import UserService
 from app.api.deps import require_admin, get_current_active_user
-from app.core.rate_limiting import limiter, RateLimits
+from app.core.custom_rate_limiting import rate_limit, CustomRateLimits
 from app.core.monitoring import logger
 from app.models.role import RoleType
 
@@ -18,7 +18,7 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[Role])
-@limiter.limit(RateLimits.API_GENERAL)
+@rate_limit(CustomRateLimits.API_GENERAL)
 def get_all_roles(
     request: Request,
     db: Session = Depends(get_db),
@@ -30,7 +30,7 @@ def get_all_roles(
 
 
 @router.post("/assign", response_model=User)
-@limiter.limit(RateLimits.API_GENERAL)
+@rate_limit(CustomRateLimits.API_GENERAL)
 def assign_user_roles(
     request: Request,
     role_update: UserRoleUpdate,
@@ -69,7 +69,7 @@ def assign_user_roles(
 
 
 @router.get("/user/{user_id}", response_model=List[Role])
-@limiter.limit(RateLimits.API_GENERAL)
+@rate_limit(CustomRateLimits.API_GENERAL)
 def get_user_roles(
     request: Request,
     user_id: int,

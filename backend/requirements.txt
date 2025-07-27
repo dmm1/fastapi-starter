@@ -7,7 +7,6 @@ sqlalchemy>=2.0.0
 pydantic[email]>=2.11.0
 pydantic-settings>=2.10.0
 uvicorn[standard]>=0.35.0
-slowapi>=0.1.9
 redis>=6.2.0
 psutil>=7.0.0
 structlog>=25.0.0

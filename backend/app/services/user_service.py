@@ -50,6 +50,9 @@ class UserService:
         db_user = User(
             email=user_create.email,
             username=user_create.username,
+            firstname=user_create.firstname,
+            lastname=user_create.lastname,
+            avatar=user_create.avatar,
             hashed_password=hashed_password,
             is_active=user_create.is_active,
             is_admin=user_create.is_admin,
@@ -119,8 +122,30 @@ class UserService:
 
     @staticmethod
     def authenticate(db: Session, email: str, password: str) -> Optional[User]:
-        """Authenticate user."""
+        """Authenticate user and update last login."""
         user = UserService.get_by_email(db, email)
         if not user or not verify_password(password, user.hashed_password):
             return None
+        
+        # Update last login time
+        user.last_logged_in = datetime.utcnow()
+        db.commit()
+        db.refresh(user)
         return user
+
+    @staticmethod
+    def change_password(db: Session, user_id: int, current_password: str, new_password: str) -> bool:
+        """Change user password after verifying current password."""
+        user = UserService.get_by_id(db, user_id)
+        if not user:
+            return False
+        
+        # Verify current password
+        if not verify_password(current_password, user.hashed_password):
+            return False
+        
+        # Update password
+        user.hashed_password = get_password_hash(new_password)
+        user.updated_at = datetime.utcnow()
+        db.commit()
+        return True
