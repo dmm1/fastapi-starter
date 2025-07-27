@@ -10,7 +10,10 @@ from app.core.config import settings
 from app.api.v1.api import api_router
 from app.db.session import create_tables, init_db
 from app.core.monitoring import MonitoringMiddleware, metrics_collector, logger
-from app.core.custom_rate_limiting import CustomRateLimitMiddleware, cleanup_rate_limiter
+from app.core.custom_rate_limiting import (
+    CustomRateLimitMiddleware,
+    cleanup_rate_limiter,
+)
 from app.core.security_middleware import SecurityHeadersMiddleware
 from datetime import datetime
 
@@ -61,7 +64,7 @@ async def startup_event():
     create_tables()
     init_db()
     logger.info("Database initialized successfully")
-    
+
     # Start rate limiter cleanup task
     asyncio.create_task(cleanup_rate_limiter())
     logger.info("Rate limiter cleanup task started")
@@ -81,7 +84,7 @@ async def root(request: Request):
         "version": settings.version,
         "docs_url": "/docs",
         "status": "running",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now().isoformat(),
     }
 
 
@@ -127,9 +130,9 @@ async def get_status(request: Request):
     return {
         "status": "running",
         "version": settings.version,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now().isoformat(),
         "uptime_seconds": (
-            datetime.utcnow() - metrics_collector.start_time
+            datetime.now() - metrics_collector.start_time
         ).total_seconds(),
     }
 

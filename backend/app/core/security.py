@@ -27,18 +27,20 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     """Create JWT access token with enhanced payload."""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(
+        expire = datetime.now() + timedelta(
             minutes=settings.access_token_expire_minutes
         )
 
-    to_encode.update({
-        "exp": expire, 
-        "type": "access",
-        "iat": datetime.utcnow(),
-        "token_version": 1  # For future token invalidation
-    })
+    to_encode.update(
+        {
+            "exp": expire,
+            "type": "access",
+            "iat": datetime.now(),
+            "token_version": 1,  # For future token invalidation
+        }
+    )
     encoded_jwt = jwt.encode(
         to_encode, settings.secret_key, algorithm=settings.algorithm
     )
@@ -49,16 +51,13 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) 
     """Create JWT refresh token."""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(days=settings.refresh_token_expire_days)
+        expire = datetime.now() + timedelta(days=settings.refresh_token_expire_days)
 
-    to_encode.update({
-        "exp": expire, 
-        "type": "refresh",
-        "iat": datetime.utcnow(),
-        "token_version": 1
-    })
+    to_encode.update(
+        {"exp": expire, "type": "refresh", "iat": datetime.now(), "token_version": 1}
+    )
     encoded_jwt = jwt.encode(
         to_encode, settings.secret_key, algorithm=settings.algorithm
     )
@@ -68,22 +67,20 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) 
 def create_tokens(user_id: int, email: str, roles: list[str]) -> dict:
     """Create both access and refresh tokens with role and session information."""
     session_id = str(uuid.uuid4())  # Generate unique session ID
-    
+
     token_data = {
-        "sub": str(user_id), 
+        "sub": str(user_id),
         "email": email,
         "roles": roles,  # Include user roles in token
         "is_admin": "admin" in roles,  # Backward compatibility
         "session_id": session_id,  # Add session tracking
-        "login_time": datetime.utcnow().isoformat()  # Track when token was created
+        "login_time": datetime.now().isoformat(),  # Track when token was created
     }
-    
+
     access_token = create_access_token(data=token_data)
-    refresh_token = create_refresh_token(data={
-        "sub": str(user_id), 
-        "email": email,
-        "session_id": session_id
-    })
+    refresh_token = create_refresh_token(
+        data={"sub": str(user_id), "email": email, "session_id": session_id}
+    )
 
     return {
         "access_token": access_token,
@@ -106,7 +103,7 @@ def verify_token(token: str, token_type: str = "access") -> Optional[dict]:
 
         # Check expiration
         exp = payload.get("exp")
-        if exp is None or datetime.utcnow() > datetime.fromtimestamp(exp):
+        if exp is None or datetime.now() > datetime.fromtimestamp(exp):
             return None
 
         return payload
@@ -118,17 +115,17 @@ def validate_password_strength(password: str) -> tuple[bool, str]:
     """Validate password meets security requirements."""
     if len(password) < 8:
         return False, "Password must be at least 8 characters long"
-    
+
     if not any(c.isupper() for c in password):
         return False, "Password must contain at least one uppercase letter"
-    
+
     if not any(c.islower() for c in password):
         return False, "Password must contain at least one lowercase letter"
-    
+
     if not any(c.isdigit() for c in password):
         return False, "Password must contain at least one digit"
-    
+
     if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password):
         return False, "Password must contain at least one special character"
-    
+
     return True, "Password is valid"

@@ -56,8 +56,8 @@ class UserService:
             hashed_password=hashed_password,
             is_active=user_create.is_active,
             is_admin=user_create.is_admin,
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
         )
 
         db.add(db_user)
@@ -65,9 +65,11 @@ class UserService:
         db.refresh(db_user)
 
         # Assign roles
-        if hasattr(user_create, 'roles') and user_create.roles:
+        if hasattr(user_create, "roles") and user_create.roles:
             for role in user_create.roles:
-                RoleService.assign_role_to_user(db, db_user, role.value if isinstance(role, RoleType) else role)
+                RoleService.assign_role_to_user(
+                    db, db_user, role.value if isinstance(role, RoleType) else role
+                )
         else:
             # Assign default role
             RoleService.assign_default_role(db, db_user)
@@ -91,8 +93,12 @@ class UserService:
                 raise ValueError("User with this username already exists")
 
         # Handle role updates separately
-        update_data = user_update.model_dump(exclude_unset=True) if hasattr(user_update, 'model_dump') else user_update.dict(exclude_unset=True)
-        
+        update_data = (
+            user_update.model_dump(exclude_unset=True)
+            if hasattr(user_update, "model_dump")
+            else user_update.dict(exclude_unset=True)
+        )
+
         if "roles" in update_data:
             roles_to_assign = update_data.pop("roles")
             # Clear existing roles and assign new ones
@@ -105,7 +111,7 @@ class UserService:
         for field, value in update_data.items():
             setattr(user, field, value)
 
-        user.updated_at = datetime.utcnow()
+        user.updated_at = datetime.now()
         db.commit()
         db.refresh(user)
         return user
@@ -126,26 +132,28 @@ class UserService:
         user = UserService.get_by_email(db, email)
         if not user or not verify_password(password, user.hashed_password):
             return None
-        
+
         # Update last login time
-        user.last_logged_in = datetime.utcnow()
+        user.last_logged_in = datetime.now()
         db.commit()
         db.refresh(user)
         return user
 
     @staticmethod
-    def change_password(db: Session, user_id: int, current_password: str, new_password: str) -> bool:
+    def change_password(
+        db: Session, user_id: int, current_password: str, new_password: str
+    ) -> bool:
         """Change user password after verifying current password."""
         user = UserService.get_by_id(db, user_id)
         if not user:
             return False
-        
+
         # Verify current password
         if not verify_password(current_password, user.hashed_password):
             return False
-        
+
         # Update password
         user.hashed_password = get_password_hash(new_password)
-        user.updated_at = datetime.utcnow()
+        user.updated_at = datetime.now()
         db.commit()
         return True

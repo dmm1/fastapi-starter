@@ -13,14 +13,15 @@ python run.py
 ```
 
 This will start:
-- **Backend API** on http://localhost:8000
-- **Frontend UI** on http://localhost:3000
+
+- **Backend API** on <http://localhost:8000>
+- **Frontend UI** on <http://localhost:3000>
 
 Press `Ctrl+C` to stop both servers.
 
 ## 📁 Project Structure
 
-```
+```bash
 Fastapi-Starter/
 ├── run.py                    # 🎯 Start both servers
 ├── backend/                  # 🔧 FastAPI Backend
@@ -38,6 +39,7 @@ Fastapi-Starter/
 ## 🌟 Features
 
 ### Backend (FastAPI)
+
 - ✅ **Modern Architecture**: Modular FastAPI with separation of concerns
 - ✅ **JWT Authentication**: Access and refresh tokens with role information
 - ✅ **Role-Based Access Control (RBAC)**: Flexible role management system
@@ -54,6 +56,7 @@ Fastapi-Starter/
 - 🆕 **Production Ready**: Enhanced security and observability
 
 ### Frontend (Test Interface)
+
 - ✅ **API Testing UI**: Comprehensive interface to test all backend endpoints
 - ✅ **Modern UI**: Built with Pico CSS framework for clean testing
 - ✅ **Complete Testing**: All authentication and user management flows
@@ -66,30 +69,36 @@ Fastapi-Starter/
 ## 🔧 Individual Server Commands
 
 ### Backend Only
+
 ```bash
 cd backend
 python run.py
 ```
-Access at: http://localhost:8000
+
+Access at: <http://localhost:8000>
 
 ### Frontend Only
+
 ```bash
 cd frontend
 python server.py
 ```
-Access at: http://localhost:3000
+
+Access at: <http://localhost:3000>
 
 ## 📚 API Documentation
 
 With the backend running, access:
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-- **OpenAPI Schema**: http://localhost:8000/openapi.json
+
+- **Swagger UI**: <http://localhost:8000/docs>
+- **ReDoc**: <http://localhost:8000/redoc>
+- **OpenAPI Schema**: <http://localhost:8000/openapi.json>
 
 ## 🔐 Default Credentials
 
 The system creates a default admin user from your `.env` configuration:
-- **Email**: Set via `ADMIN_EMAIL` in `.env` 
+
+- **Email**: Set via `ADMIN_EMAIL` in `.env`
 - **Password**: Set via `ADMIN_PASSWORD` in `.env`
 - **Username**: Set via `ADMIN_USERNAME` in `.env`
 
@@ -113,12 +122,14 @@ The system creates a default admin user from your `.env` configuration:
 ## 🛠️ Development Setup
 
 1. **Clone & Navigate**:
+
    ```bash
    git clone <your-repo>
    cd Fastapi-Starter
    ```
 
 2. **Setup Environment**:
+
    ```bash
    cd backend
    cp .env.example .env
@@ -128,21 +139,24 @@ The system creates a default admin user from your `.env` configuration:
    ```
 
 3. **Install Backend Dependencies**:
+
    ```bash
    pip install -r requirements.txt
    cd ..
    ```
 
 4. **Start Both Servers**:
+
    ```bash
    python run.py
    ```
 
-5. **Open Browser**: http://localhost:3000
+5. **Open Browser**: <http://localhost:3000>
 
 ## 🏗️ Architecture
 
 ### Backend Architecture
+
 - **Modular Design**: Separate layers for API, services, models, and database
 - **FastAPI Best Practices**: Dependency injection, automatic validation
 - **SQLAlchemy ORM**: Modern database handling with SQLite
@@ -150,12 +164,14 @@ The system creates a default admin user from your `.env` configuration:
 - **Pydantic Schemas**: Type-safe data validation
 
 ### Frontend Architecture
+
 - **Test Interface**: Vanilla JavaScript for API testing and development
 - **Axios HTTP Client**: With automatic token management examples
 - **Pico CSS**: Minimal framework for clean testing interface
 - **Responsive Design**: Test on mobile and desktop
 
 > 🚀 **Ready for Modern Frameworks**: The backend API is framework-agnostic and works seamlessly with:
+>
 > - **React** (with hooks, context, or Redux)
 > - **Vue.js** (with Composition API or Options API)  
 > - **Angular** (with services and guards)
@@ -185,6 +201,7 @@ cp .env.example .env
 ```
 
 Then edit `backend/.env` with your configuration:
+
 ```env
 # Security - Generate a strong secret key for production
 SECRET_KEY=your-super-secret-key-change-this-in-production-minimum-32-characters
@@ -210,6 +227,7 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 ## 🚀 Production Deployment
 
 ### Backend
+
 - Use PostgreSQL/MySQL instead of SQLite
 - Set strong SECRET_KEY
 - Configure CORS for your domain
@@ -218,9 +236,11 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 - Set up monitoring
 
 ### Frontend
+>
 > **Replace the test frontend with a production-ready solution:**
 
 **React Example:**
+
 ```bash
 npx create-react-app my-Fastapi-Starter-frontend
 cd my-Fastapi-Starter-frontend
@@ -229,6 +249,7 @@ npm install axios
 ```
 
 **Vue Example:**
+
 ```bash
 npm create vue@latest my-Fastapi-Starter-frontend
 cd my-Fastapi-Starter-frontend
@@ -237,6 +258,7 @@ npm install axios
 ```
 
 **Next.js Example:**
+
 ```bash
 npx create-next-app@latest my-Fastapi-Starter-frontend
 cd my-Fastapi-Starter-frontend
@@ -245,6 +267,7 @@ npm install axios
 ```
 
 ### Frontend Migration Tips
+
 1. **API Client**: Copy the authentication logic from `frontend/app.js`
 2. **Token Management**: Implement automatic token refresh using interceptors
 3. **Route Protection**: Add authentication guards for protected routes
@@ -254,10 +277,10 @@ npm install axios
 ## 🧪 Testing
 
 1. **Start the system**: `python run.py`
-2. **Open test interface**: http://localhost:3000
+2. **Open test interface**: <http://localhost:3000>
 3. **Login with admin credentials**
 4. **Test all API endpoints** through the UI
-5. **Check API docs**: http://localhost:8000/docs
+5. **Check API docs**: <http://localhost:8000/docs>
 6. **Use the test interface to understand the API flow** before implementing your production frontend
 
 ## 🎯 Next Steps for Production

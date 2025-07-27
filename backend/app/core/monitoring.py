@@ -42,7 +42,7 @@ class MetricsCollector:
         self.error_count = defaultdict(int)
         self.status_codes = defaultdict(int)
         self.active_connections = 0
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now()
         self.endpoint_stats = defaultdict(
             lambda: {"count": 0, "total_time": 0, "errors": 0, "avg_time": 0}
         )
@@ -83,7 +83,7 @@ class MetricsCollector:
         # Store recent request
         self.recent_requests.append(
             {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now().isoformat(),
                 "method": method,
                 "path": path,
                 "status_code": status_code,
@@ -94,7 +94,7 @@ class MetricsCollector:
 
     def get_metrics(self) -> Dict[str, Any]:
         """Get all collected metrics."""
-        uptime = datetime.utcnow() - self.start_time
+        uptime = datetime.now() - self.start_time
 
         # System metrics
         system_metrics = {
@@ -154,7 +154,7 @@ class MetricsCollector:
 
         return {
             "status": health_status,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now().isoformat(),
             "uptime_seconds": metrics["uptime_seconds"],
             "issues": issues,
             "metrics": {
@@ -260,7 +260,7 @@ def log_security_event(
         event_type=event_type,
         user_id=user_id,
         details=details or {},
-        timestamp=datetime.utcnow().isoformat(),
+        timestamp=datetime.now().isoformat(),
     )
 
 
@@ -271,5 +271,5 @@ def log_auth_attempt(email: str, success: bool, client_ip: Optional[str] = None)
         email=email,
         success=success,
         client_ip=client_ip,
-        timestamp=datetime.utcnow().isoformat(),
+        timestamp=datetime.now().isoformat(),
     )

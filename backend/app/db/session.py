@@ -39,7 +39,7 @@ def init_db():
     try:
         # Create default roles first
         RoleService.create_default_roles(db)
-        
+
         # Check if admin user already exists
         admin_user = db.query(User).filter(User.email == settings.admin_email).first()
         if not admin_user:
@@ -50,16 +50,16 @@ def init_db():
                 hashed_password=get_password_hash(settings.admin_password),
                 is_active=True,
                 is_admin=True,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
             )
             db.add(admin_user)
             db.commit()
             db.refresh(admin_user)
-            
+
             # Assign admin roles
             RoleService.assign_default_role(db, admin_user)
-            
+
             print(
                 f"✅ Default admin user created: {settings.admin_email} / {settings.admin_password}"
             )
@@ -67,9 +67,11 @@ def init_db():
             # Ensure existing admin has proper roles
             if not admin_user.has_role("admin"):
                 RoleService.assign_role_to_user(db, admin_user, "admin")
-                print(f"✅ Admin role assigned to existing user: {settings.admin_email}")
+                print(
+                    f"✅ Admin role assigned to existing user: {settings.admin_email}"
+                )
             print("✅ Default admin user already exists")
-            
+
     except Exception as e:
         print(f"❌ Error initializing database: {e}")
         db.rollback()
