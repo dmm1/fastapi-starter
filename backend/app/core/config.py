@@ -3,8 +3,8 @@ Core configuration and settings for the Fastapi-Starter Backend API.
 """
 
 from typing import List, Union
-from pydantic_settings import BaseSettings
-from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator, Field
 
 
 class Settings(BaseSettings):
@@ -33,9 +33,9 @@ class Settings(BaseSettings):
     backend_cors_origins: List[str] = ["*"]  # Configure properly in production
 
     # Admin User - These MUST be set in .env file or will use defaults for development
-    admin_email: str = ""
-    admin_username: str = ""
-    admin_password: str = ""
+    admin_email: str = Field(default="", alias="ADMIN_EMAIL")
+    admin_username: str = Field(default="", alias="ADMIN_USERNAME")
+    admin_password: str = Field(default="", alias="ADMIN_PASSWORD")
 
     # Password policy settings
     min_password_length: int = 8
@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     require_lowercase: bool = True
     require_numbers: bool = True
     require_special_chars: bool = True
-    createmin: bool = False  # If True, create admin user on startup
+    createmin: bool = Field(default=False, alias="CREATEMIN")  # If True, create admin user on startup
 
     @field_validator("backend_cors_origins", mode="before")
     @classmethod
@@ -54,16 +54,11 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
 
-    class Config:
-        env_file = ".env"
-        env_prefix = ""
-        fields = {
-            "admin_email": {"env": "ADMIN_EMAIL"},
-            "admin_username": {"env": "ADMIN_USERNAME"},
-            "admin_password": {"env": "ADMIN_PASSWORD"},
-            "createmin": {"env": "CREATEMIN"},
-        }
-        extra = "allow"  # Allow extra fields from .env
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix="",
+        extra="allow"  # Allow extra fields from .env
+    )
 
 
 # Global settings instance
