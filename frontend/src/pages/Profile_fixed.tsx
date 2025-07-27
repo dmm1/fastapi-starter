@@ -11,6 +11,7 @@ import {
 import { Button } from "../components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { AvatarManager } from "../components/AvatarManager";
@@ -19,7 +20,7 @@ import { useAuthGuard } from "../hooks/useAuthGuard";
 
 export default function ProfilePage() {
     const { isAuthenticated, user } = useAuthGuard();
-    const { updateProfile, changePassword, refreshUser, isLoading, error } = useAuthStore();
+    const { updateProfile, changePassword, isLoading, error } = useAuthStore();
     const [isEditing, setIsEditing] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [showPasswords, setShowPasswords] = useState({
@@ -66,11 +67,9 @@ export default function ProfilePage() {
         setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
     }
 
-    function handleAvatarUpdate() {
+    function handleAvatarUpdate(avatarUrl: string) {
         setMessage({ type: 'success', text: 'Avatar updated successfully!' });
         setTimeout(() => setMessage(null), 5000);
-        // Refresh user data to get the updated avatar
-        refreshUser();
     }
 
     async function handleProfileSubmit(e: React.FormEvent) {
@@ -114,6 +113,8 @@ export default function ProfilePage() {
         setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     }
 
+    const currentAvatarUrl = user?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.firstname || user?.username}`;
+
     return (
         <div className="flex-1 space-y-8 p-8 pt-6">
             <div className="flex items-center justify-between space-y-2">
@@ -127,8 +128,8 @@ export default function ProfilePage() {
 
             {message && (
                 <div className={`p-4 rounded-md border ${message.type === 'success'
-                    ? 'bg-green-50 text-green-800 border-green-200'
-                    : 'bg-red-50 text-red-800 border-red-200'
+                        ? 'bg-green-50 text-green-800 border-green-200'
+                        : 'bg-red-50 text-red-800 border-red-200'
                     }`}>
                     {message.text}
                 </div>

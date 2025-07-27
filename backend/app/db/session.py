@@ -5,6 +5,7 @@ Database session management and dependencies with RBAC support.
 from typing import Generator
 from sqlalchemy.orm import Session
 from app.db.base import SessionLocal
+import os
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -21,6 +22,14 @@ def create_tables():
     from app.db.base import Base, engine
     from app.models.user import User  # Import all models to register them
     from app.models.role import Role, user_roles  # Import role models
+
+    # Ensure database directory exists
+    db_path = os.getenv("DATABASE_URL", "sqlite:///./data/auth.db")
+    if db_path.startswith("sqlite:///"):
+        db_file = db_path.replace("sqlite:///", "")
+        db_dir = os.path.dirname(db_file)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
 
     # Ensure all models are loaded
     _ = User, Role, user_roles
@@ -43,6 +52,19 @@ def init_db():
         # Check if admin user already exists
         admin_user = db.query(User).filter(User.email == settings.admin_email).first()
         if not admin_user:
+            if not settings.createmin:
+                print("ℹ️ Skipping admin user creation (CREATEMIN is False)")
+                return
+            if not (
+                settings.admin_email
+                and settings.admin_username
+                and settings.admin_password
+            ):
+                print(
+                    "❌ Admin credentials not set in .env. Skipping admin user creation."
+                )
+                return
+
             # Create default admin user
             admin_user = User(
                 email=settings.admin_email,

@@ -1,8 +1,46 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Layout } from "../components/ui/Layout";
+import {
+    Users,
+    Shield,
+    Edit,
+    Trash2,
+    Plus,
+    Search,
+    MoreHorizontal,
+    UserCheck,
+    UserX
+} from "lucide-react";
 import { Button } from "../components/ui/button";
-import { Card, CardHeader, CardContent } from "../components/ui/card";
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from "../components/ui/table";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "../components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
 import { useAuthGuard } from "../hooks/useAuthGuard";
 import { usersApi, rolesApi, type User } from "../lib/api-client";
 
@@ -10,7 +48,9 @@ export default function AdminPage() {
     const { isAuthenticated, user } = useAuthGuard(["admin"]);
     const queryClient = useQueryClient();
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
-    const [isEditingUser, setIsEditingUser] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
     const [userForm, setUserForm] = useState({
         email: "",
         username: "",
@@ -21,13 +61,13 @@ export default function AdminPage() {
     });
 
     // Queries
-    const { data: users, isLoading: usersLoading, error: usersError } = useQuery({
+    const { data: users, isLoading: usersLoading } = useQuery({
         queryKey: ["admin-users"],
         queryFn: () => usersApi.getAllUsers(),
         enabled: isAuthenticated && user?.roles?.some(role => role.name === "admin"),
     });
 
-    const { data: roles, isLoading: rolesLoading } = useQuery({
+    useQuery({
         queryKey: ["roles"],
         queryFn: () => rolesApi.getAllRoles(),
         enabled: isAuthenticated && user?.roles?.some(role => role.name === "admin"),
@@ -39,7 +79,7 @@ export default function AdminPage() {
             usersApi.updateUser(userId, userData),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-            setIsEditingUser(false);
+            setIsEditDialogOpen(false);
             setSelectedUser(null);
         },
     });
@@ -48,15 +88,8 @@ export default function AdminPage() {
         mutationFn: (userId: number) => usersApi.deleteUser(userId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+            setIsDeleteDialogOpen(false);
             setSelectedUser(null);
-        },
-    });
-
-    const assignRolesMutation = useMutation({
-        mutationFn: ({ userId, roles }: { userId: number, roles: string[] }) =>
-            rolesApi.assignUserRoles({ user_id: userId, roles }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["admin-users"] });
         },
     });
 
@@ -64,316 +97,363 @@ export default function AdminPage() {
         return null; // Will redirect to login
     }
 
-    if (!user?.roles?.some(role => role.name === "admin")) {
-        return (
-            <Layout>
-                <div className="flex items-center justify-center min-h-[400px]">
-                    <div className="text-center">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
-                        <p className="text-gray-600">You don't have permission to access this page.</p>
-                    </div>
-                </div>
-            </Layout>
-        );
-    }
+    // Filter users based on search term
+    const filteredUsers = users?.filter(user =>
+        user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.lastname?.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
 
-    function handleEditUser(user: User) {
+    function openEditDialog(user: User) {
         setSelectedUser(user);
         setUserForm({
-            email: user.email,
-            username: user.username,
+            email: user.email || "",
+            username: user.username || "",
             firstname: user.firstname || "",
             lastname: user.lastname || "",
-            is_active: user.is_active,
-            is_admin: user.is_admin,
+            is_active: user.is_active || false,
+            is_admin: user.roles?.some(role => role.name === "admin") || false,
         });
-        setIsEditingUser(true);
+        setIsEditDialogOpen(true);
+    }
+
+    function openDeleteDialog(user: User) {
+        setSelectedUser(user);
+        setIsDeleteDialogOpen(true);
     }
 
     function handleUserFormChange(e: React.ChangeEvent<HTMLInputElement>) {
-        const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
-        setUserForm({ ...userForm, [e.target.name]: value });
+        const { name, type, checked, value } = e.target;
+        setUserForm(prev => ({
+            ...prev,
+            [name]: type === "checkbox" ? checked : value
+        }));
     }
 
-    function handleUpdateUser(e: React.FormEvent) {
+    async function handleUpdateUser(e: React.FormEvent) {
         e.preventDefault();
         if (!selectedUser) return;
 
-        updateUserMutation.mutate({
+        await updateUserMutation.mutateAsync({
             userId: selectedUser.id,
-            userData: userForm,
+            userData: userForm
         });
     }
 
-    function handleDeleteUser(userId: number) {
-        if (window.confirm("Are you sure you want to delete this user?")) {
-            deleteUserMutation.mutate(userId);
+    async function handleDeleteUser() {
+        if (!selectedUser) return;
+        await deleteUserMutation.mutateAsync(selectedUser.id);
+    }
+
+    if (usersLoading) {
+        return (
+            <div className="flex min-h-screen bg-background">
+                <div className="flex items-center justify-center w-full">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+            </div>
+        );
+    }
+
+    const statsCards = [
+        {
+            title: "Total Users",
+            value: users?.length || 0,
+            description: "Registered users",
+            icon: Users,
+        },
+        {
+            title: "Admin Users",
+            value: users?.filter(u => u.roles?.some(r => r.name === "admin")).length || 0,
+            description: "Users with admin role",
+            icon: Shield,
+        },
+        {
+            title: "Active Users",
+            value: users?.filter(u => u.is_active).length || 0,
+            description: "Currently active users",
+            icon: UserCheck,
+        },
+        {
+            title: "Inactive Users",
+            value: users?.filter(u => !u.is_active).length || 0,
+            description: "Deactivated users",
+            icon: UserX,
         }
-    }
-
-    function handleToggleRole(userId: number, roleName: string, isAssigned: boolean) {
-        const targetUser = users?.find(u => u.id === userId);
-        if (!targetUser) return;
-
-        const currentRoles = targetUser.roles.map(r => r.name);
-        const newRoles = isAssigned
-            ? currentRoles.filter(r => r !== roleName)
-            : [...currentRoles, roleName];
-
-        assignRolesMutation.mutate({ userId, roles: newRoles });
-    }
-
-    if (usersLoading || rolesLoading) {
-        return (
-            <Layout>
-                <div className="flex items-center justify-center min-h-[400px]">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                </div>
-            </Layout>
-        );
-    }
-
-    if (usersError) {
-        return (
-            <Layout>
-                <div className="text-red-600 text-center p-8">
-                    Error loading admin data: {String(usersError)}
-                </div>
-            </Layout>
-        );
-    }
+    ];
 
     return (
-        <Layout>
-            <div className="max-w-7xl mx-auto space-y-6">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-                    <p className="mt-2 text-gray-600">
-                        Manage users, roles, and system settings.
+        <div className="flex-1 space-y-8 p-8 pt-6">
+            <div className="flex items-center justify-between space-y-2">
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight">Admin Dashboard</h2>
+                    <p className="text-muted-foreground">
+                        Manage users and system administration
                     </p>
                 </div>
+            </div>
 
-                {/* User Management Card */}
-                <Card>
-                    <CardHeader>
-                        <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">User Management</h2>
-                            <div className="text-sm text-gray-600">
-                                Total Users: {users?.length || 0}
-                            </div>
+            {/* Stats Grid */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {statsCards.map((stat, index) => {
+                    const Icon = stat.icon;
+                    return (
+                        <Card key={index}>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    {stat.title}
+                                </CardTitle>
+                                <Icon className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{stat.value}</div>
+                                <p className="text-xs text-muted-foreground">
+                                    {stat.description}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    );
+                })}
+            </div>
+
+            {/* Users Management */}
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>User Management</CardTitle>
+                            <CardDescription>
+                                View and manage all registered users
+                            </CardDescription>
                         </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            User
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Roles
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {users?.map((user) => (
-                                        <tr key={user.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div>
-                                                        <div className="text-sm font-medium text-gray-900">
-                                                            {user.firstname} {user.lastname}
-                                                        </div>
-                                                        <div className="text-sm text-gray-500">
-                                                            {user.email}
-                                                        </div>
-                                                        <div className="text-xs text-gray-400">
-                                                            @{user.username}
-                                                        </div>
+                        <Button>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add User
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {/* Search */}
+                    <div className="flex items-center space-x-2 mb-4">
+                        <Search className="h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search users..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="max-w-sm"
+                        />
+                    </div>
+
+                    {/* Users Table */}
+                    <div className="rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>User</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Roles</TableHead>
+                                    <TableHead>Created</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredUsers.map((user) => (
+                                    <TableRow key={user.id}>
+                                        <TableCell>
+                                            <div className="flex items-center space-x-3">
+                                                <Avatar className="h-8 w-8">
+                                                    <AvatarImage
+                                                        src={user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${user.firstname || user.username}`}
+                                                        alt={user.username}
+                                                    />
+                                                    <AvatarFallback>
+                                                        {(user.firstname?.[0] || user.username?.[0] || 'U').toUpperCase()}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <div className="font-medium">
+                                                        {user.firstname && user.lastname
+                                                            ? `${user.firstname} ${user.lastname}`
+                                                            : user.username
+                                                        }
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                        {user.email}
                                                     </div>
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex flex-col gap-1">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.is_active
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-red-100 text-red-800'
-                                                        }`}>
-                                                        {user.is_active ? 'Active' : 'Inactive'}
-                                                    </span>
-                                                    {user.is_admin && (
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                                            Admin
-                                                        </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={user.is_active ? "default" : "secondary"}>
+                                                {user.is_active ? "Active" : "Inactive"}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-wrap gap-1">
+                                                {user.roles?.map((role) => (
+                                                    <Badge key={role.id} variant="outline">
+                                                        {role.name}
+                                                    </Badge>
+                                                )) || (
+                                                        <span className="text-sm text-muted-foreground">No roles</span>
                                                     )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {user.roles?.map((role) => (
-                                                        <span
-                                                            key={role.id}
-                                                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                                                        >
-                                                            {role.name}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                                {/* Role toggle buttons */}
-                                                <div className="mt-2 flex flex-wrap gap-1">
-                                                    {roles?.map((role) => {
-                                                        const isAssigned = user.roles?.some(r => r.name === role.name);
-                                                        return (
-                                                            <button
-                                                                key={role.id}
-                                                                onClick={() => handleToggleRole(user.id, role.name, isAssigned)}
-                                                                className={`text-xs px-2 py-1 rounded ${isAssigned
-                                                                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                                    }`}
-                                                                disabled={assignRolesMutation.isPending}
-                                                            >
-                                                                {isAssigned ? `Remove ${role.name}` : `Add ${role.name}`}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <div className="flex gap-2">
-                                                    <Button
-                                                        onClick={() => handleEditUser(user)}
-                                                        className="bg-green-600 hover:bg-green-700 text-xs px-3 py-1"
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {user.created_at
+                                                ? new Date(user.created_at).toLocaleDateString()
+                                                : "Unknown"
+                                            }
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                                        <span className="sr-only">Open menu</span>
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                    <DropdownMenuItem
+                                                        onClick={() => openEditDialog(user)}
                                                     >
+                                                        <Edit className="mr-2 h-4 w-4" />
                                                         Edit
-                                                    </Button>
-                                                    <Button
-                                                        onClick={() => handleDeleteUser(user.id)}
-                                                        className="bg-red-600 hover:bg-red-700 text-xs px-3 py-1"
-                                                        disabled={user.id === user.id} // Can't delete self
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        onClick={() => openDeleteDialog(user)}
+                                                        className="text-destructive"
                                                     >
+                                                        <Trash2 className="mr-2 h-4 w-4" />
                                                         Delete
-                                                    </Button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Edit User Modal */}
-                {isEditingUser && selectedUser && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                            <h3 className="text-lg font-semibold mb-4">Edit User</h3>
-                            <form onSubmit={handleUpdateUser} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Email
-                                    </label>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={userForm.email}
-                                        onChange={handleUserFormChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Username
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="username"
-                                        value={userForm.username}
-                                        onChange={handleUserFormChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        required
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            First Name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="firstname"
-                                            value={userForm.firstname}
-                                            onChange={handleUserFormChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Last Name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="lastname"
-                                            value={userForm.lastname}
-                                            onChange={handleUserFormChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            name="is_active"
-                                            checked={userForm.is_active}
-                                            onChange={handleUserFormChange}
-                                            className="mr-2"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700">Active</span>
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            name="is_admin"
-                                            checked={userForm.is_admin}
-                                            onChange={handleUserFormChange}
-                                            className="mr-2"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700">Admin</span>
-                                    </label>
-                                </div>
-                                <div className="flex gap-3 pt-4">
-                                    <Button
-                                        type="submit"
-                                        disabled={updateUserMutation.isPending}
-                                    >
-                                        {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        className="bg-gray-600 hover:bg-gray-700"
-                                        onClick={() => {
-                                            setIsEditingUser(false);
-                                            setSelectedUser(null);
-                                        }}
-                                    >
-                                        Cancel
-                                    </Button>
-                                </div>
-                            </form>
-                        </div>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     </div>
-                )}
-            </div>
-        </Layout>
+                </CardContent>
+            </Card>
+
+            {/* Edit User Dialog */}
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Edit User</DialogTitle>
+                        <DialogDescription>
+                            Make changes to the user account here. Click save when you're done.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleUpdateUser} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="firstname">First Name</Label>
+                                <Input
+                                    id="firstname"
+                                    name="firstname"
+                                    value={userForm.firstname}
+                                    onChange={handleUserFormChange}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="lastname">Last Name</Label>
+                                <Input
+                                    id="lastname"
+                                    name="lastname"
+                                    value={userForm.lastname}
+                                    onChange={handleUserFormChange}
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                name="email"
+                                type="email"
+                                value={userForm.email}
+                                onChange={handleUserFormChange}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="username">Username</Label>
+                            <Input
+                                id="username"
+                                name="username"
+                                value={userForm.username}
+                                onChange={handleUserFormChange}
+                            />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                id="is_active"
+                                name="is_active"
+                                checked={userForm.is_active}
+                                onChange={handleUserFormChange}
+                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                            <Label htmlFor="is_active">Active</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                id="is_admin"
+                                name="is_admin"
+                                checked={userForm.is_admin}
+                                onChange={handleUserFormChange}
+                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                            <Label htmlFor="is_admin">Admin</Label>
+                        </div>
+                        <DialogFooter>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsEditDialogOpen(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={updateUserMutation.isPending}>
+                                {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete User Dialog */}
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete User</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this user? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsDeleteDialogOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleDeleteUser}
+                            disabled={deleteUserMutation.isPending}
+                        >
+                            {deleteUserMutation.isPending ? "Deleting..." : "Delete"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
     );
 }

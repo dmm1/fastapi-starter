@@ -6,6 +6,8 @@ import asyncio
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from app.core.config import settings
 from app.api.v1.api import api_router
 from app.db.session import create_tables, init_db
@@ -49,6 +51,11 @@ def create_application() -> FastAPI:
 
     # Include API router
     app.include_router(api_router, prefix="/api/v1")
+
+    # Mount static files for avatars
+    upload_dir = Path("data/uploads/avatars")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    app.mount("/static/avatars", StaticFiles(directory=str(upload_dir)), name="avatars")
 
     return app
 

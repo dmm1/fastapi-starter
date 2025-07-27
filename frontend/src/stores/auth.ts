@@ -156,6 +156,52 @@ export function useAuthStore() {
       }
     },
 
+    uploadAvatar: async (file: File) => {
+      authStore.setState(prev => ({ ...prev, isLoading: true, error: null }));
+      try {
+        const result = await usersApi.uploadAvatar(file);
+        // Update user profile with new avatar URL
+        const updatedUser = await usersApi.updateCurrentUserProfile({ avatar: result.avatar_url });
+        authStore.setState(prev => ({
+          ...prev,
+          user: updatedUser,
+          isLoading: false,
+          error: null,
+        }));
+        return { success: true, avatar_url: result.avatar_url, user: updatedUser };
+      } catch (error) {
+        authStore.setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: error instanceof Error ? error.message : "Avatar upload failed",
+        }));
+        return { success: false, error: error instanceof Error ? error.message : "Avatar upload failed" };
+      }
+    },
+
+    deleteAvatar: async () => {
+      authStore.setState(prev => ({ ...prev, isLoading: true, error: null }));
+      try {
+        await usersApi.deleteAvatar();
+        // Refresh user data to get the updated avatar status
+        const updatedUser = await usersApi.getCurrentUserProfile();
+        authStore.setState(prev => ({
+          ...prev,
+          user: updatedUser,
+          isLoading: false,
+          error: null,
+        }));
+        return { success: true, user: updatedUser };
+      } catch (error) {
+        authStore.setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: error instanceof Error ? error.message : "Avatar deletion failed",
+        }));
+        return { success: false, error: error instanceof Error ? error.message : "Avatar deletion failed" };
+      }
+    },
+
     changePassword: async (currentPassword: string, newPassword: string) => {
       authStore.setState(prev => ({ ...prev, isLoading: true, error: null }));
       try {
