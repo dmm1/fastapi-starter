@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Development server runner for Fastapi-Starter project.
-Starts both backend (FastAPI) and frontend (simple HTTP server) simultaneously.
+Starts both backend (FastAPI) and frontend (Vite dev server) simultaneously.
 """
 
 import subprocess
@@ -37,10 +37,10 @@ def run_servers():
         # Give backend time to start
         time.sleep(2)
 
-        # Start frontend server
-        print("🌐 Starting frontend server (HTTP on port 3000)...")
+        # Start frontend server using Vite
+        print("🌐 Starting frontend server (Vite dev server on port 3000)...")
         frontend_process = subprocess.Popen(
-            [sys.executable, "server.py"],
+            ["npm", "run", "dev"],
             cwd=frontend_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -129,8 +129,8 @@ def main():
         print("❌ Backend run.py not found!")
         sys.exit(1)
 
-    if not (frontend_dir / "server.py").exists():
-        print("❌ Frontend server.py not found!")
+    if not (frontend_dir / "package.json").exists():
+        print("❌ Frontend package.json not found!")
         sys.exit(1)
 
     run_servers()
