@@ -56,6 +56,39 @@ api.interceptors.response.use(
     }
 );
 
+// Secure persistent token storage
+function saveTokens(tokens) {
+    // Only store if both tokens are present
+    if (tokens.access_token && tokens.refresh_token) {
+        localStorage.setItem('auth_tokens', JSON.stringify(tokens));
+    }
+}
+
+function loadTokens() {
+    try {
+        const stored = localStorage.getItem('auth_tokens');
+        if (stored) {
+            const tokens = JSON.parse(stored);
+            // Basic validation: check for string tokens
+            if (typeof tokens.access_token === 'string' && typeof tokens.refresh_token === 'string') {
+                return tokens;
+            }
+        }
+    } catch (e) {
+        // Corrupted or tampered storage
+        localStorage.removeItem('auth_tokens');
+    }
+    return { access_token: null, refresh_token: null };
+}
+
+function clearTokens() {
+    localStorage.removeItem('auth_tokens');
+}
+
+// Restore tokens on page load
+currentTokens = loadTokens();
+updateAuthUI();
+
 // Utility Functions
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
@@ -188,8 +221,8 @@ async function login(email, password) {
             email: email,
             password: password
         });
-
         currentTokens = response.data;
+        saveTokens(currentTokens);
         updateAuthUI();
         addEventLog('login', `User ${email} logged in successfully`);
         showToast('Login successful!', 'success');
@@ -250,6 +283,7 @@ async function refreshToken() {
 
 function logout() {
     currentTokens = { access_token: null, refresh_token: null };
+    clearTokens();
     updateAuthUI();
     addEventLog('info', 'User logged out');
     showToast('Logged out successfully', 'info');
@@ -305,7 +339,6 @@ function updateAuthUI() {
     
     // Update profile UI when auth status changes
     updateProfileUI();
-}
 }
 
 // Monitoring Functions

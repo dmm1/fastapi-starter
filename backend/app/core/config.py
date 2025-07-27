@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     description: str = "A modern authentication system with FastAPI and RBAC"
 
     # Security
-    SECRET_KEY: str
+    SECRET_KEY: str = "changeme-secret-key"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
@@ -32,10 +32,10 @@ class Settings(BaseSettings):
     # CORS - Using Python 3.12 union syntax would be List[str] | str but keeping compatible
     backend_cors_origins: List[str] = ["*"]  # Configure properly in production
 
-    # Admin User - These MUST be set in .env file
-    admin_email: str
-    admin_username: str
-    admin_password: str
+    # Admin User - These MUST be set in .env file or will use defaults for development
+    admin_email: str = "admin@example.com"
+    admin_username: str = "admin"
+    admin_password: str = "adminpassword"
 
     # Password policy settings
     min_password_length: int = 8
@@ -54,7 +54,7 @@ class Settings(BaseSettings):
         raise ValueError(v)
 
     class Config:
-        env_file = ".env"
+        env_file = "backend/.env"
         extra = "allow"  # Allow extra fields from .env
 
 
