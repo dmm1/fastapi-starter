@@ -3,7 +3,7 @@ Pydantic schemas for user-related operations.
 """
 from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
 from app.models.role import RoleType
 
 
@@ -45,8 +45,7 @@ class Role(RoleBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # User schemas
@@ -109,8 +108,7 @@ class UserInDB(UserBase):
     last_logged_in: Optional[datetime] = None
     roles: list[Role] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class User(UserBase):
@@ -121,8 +119,7 @@ class User(UserBase):
     last_logged_in: Optional[datetime] = None
     roles: list[Role] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Auth schemas
