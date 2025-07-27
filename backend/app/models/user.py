@@ -16,10 +16,17 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    
+    # New profile fields
+    firstname = Column(String, nullable=True)
+    lastname = Column(String, nullable=True)
+    avatar = Column(String, nullable=True)  # URL or path to avatar image
+    
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)  # Keep for backward compatibility
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_logged_in = Column(DateTime, nullable=True)  # Track last login
     
     # Many-to-many relationship with roles
     roles = relationship("Role", secondary="user_roles", back_populates="users")

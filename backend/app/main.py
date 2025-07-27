@@ -2,6 +2,7 @@
 Main FastAPI application entry point.
 """
 
+import asyncio
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
@@ -9,9 +10,8 @@ from app.core.config import settings
 from app.api.v1.api import api_router
 from app.db.session import create_tables, init_db
 from app.core.monitoring import MonitoringMiddleware, metrics_collector, logger
-from app.core.rate_limiting import limiter, rate_limit_handler, RateLimits
+from app.core.custom_rate_limiting import CustomRateLimitMiddleware, cleanup_rate_limiter
 from app.core.security_middleware import SecurityHeadersMiddleware
-from slowapi.errors import RateLimitExceeded
 from datetime import datetime
 
 
@@ -41,9 +41,8 @@ def create_application() -> FastAPI:
     # Add monitoring middleware
     app.add_middleware(MonitoringMiddleware)
 
-    # Add rate limiter
-    app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
+    # Add custom rate limiting middleware
+    app.add_middleware(CustomRateLimitMiddleware, default_rate="1000 per hour")
 
     # Include API router
     app.include_router(api_router, prefix="/api/v1")
@@ -62,6 +61,10 @@ async def startup_event():
     create_tables()
     init_db()
     logger.info("Database initialized successfully")
+    
+    # Start rate limiter cleanup task
+    asyncio.create_task(cleanup_rate_limiter())
+    logger.info("Rate limiter cleanup task started")
 
 
 @app.on_event("shutdown")
@@ -71,7 +74,6 @@ async def shutdown_event():
 
 
 @app.get("/")
-@limiter.limit(RateLimits.API_GENERAL)
 async def root(request: Request):
     """Root endpoint."""
     return {
@@ -84,7 +86,6 @@ async def root(request: Request):
 
 
 @app.get("/health")
-@limiter.limit(RateLimits.HEALTH_CHECK)
 async def health_check(request: Request):
     """Enhanced health check endpoint with detailed system information."""
     health_data = metrics_collector.get_health_status()
@@ -115,14 +116,12 @@ async def health_check(request: Request):
 
 
 @app.get("/metrics")
-@limiter.limit(RateLimits.METRICS)
 async def get_metrics(request: Request):
     """Get application metrics (for monitoring systems)."""
     return metrics_collector.get_metrics()
 
 
 @app.get("/status")
-@limiter.limit(RateLimits.API_GENERAL)
 async def get_status(request: Request):
     """Get basic application status."""
     return {

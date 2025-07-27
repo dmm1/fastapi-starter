@@ -2,6 +2,7 @@
 Security utilities for authentication and authorization.
 """
 
+import uuid
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
@@ -65,21 +66,30 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) 
 
 
 def create_tokens(user_id: int, email: str, roles: list[str]) -> dict:
-    """Create both access and refresh tokens with role information."""
+    """Create both access and refresh tokens with role and session information."""
+    session_id = str(uuid.uuid4())  # Generate unique session ID
+    
     token_data = {
         "sub": str(user_id), 
         "email": email,
         "roles": roles,  # Include user roles in token
-        "is_admin": "admin" in roles  # Backward compatibility
+        "is_admin": "admin" in roles,  # Backward compatibility
+        "session_id": session_id,  # Add session tracking
+        "login_time": datetime.utcnow().isoformat()  # Track when token was created
     }
     
     access_token = create_access_token(data=token_data)
-    refresh_token = create_refresh_token(data={"sub": str(user_id), "email": email})
+    refresh_token = create_refresh_token(data={
+        "sub": str(user_id), 
+        "email": email,
+        "session_id": session_id
+    })
 
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
+        "session_id": session_id,
     }
 
 

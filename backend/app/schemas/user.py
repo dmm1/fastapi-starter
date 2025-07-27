@@ -9,10 +9,11 @@ from app.models.role import RoleType
 
 # Token schemas
 class Token(BaseModel):
-    """Token response schema with role information."""
+    """Token response schema with role and session information."""
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+    session_id: Optional[str] = None
 
 
 class TokenData(BaseModel):
@@ -53,6 +54,9 @@ class UserBase(BaseModel):
     """Base user schema."""
     email: EmailStr
     username: str
+    firstname: Optional[str] = None
+    lastname: Optional[str] = None
+    avatar: Optional[str] = None
     is_active: bool = True
     is_admin: bool = False
 
@@ -88,6 +92,9 @@ class UserUpdate(BaseModel):
     """User update schema."""
     email: Optional[EmailStr] = None
     username: Optional[str] = None
+    firstname: Optional[str] = None
+    lastname: Optional[str] = None
+    avatar: Optional[str] = None
     is_active: Optional[bool] = None
     is_admin: Optional[bool] = None
     roles: Optional[list[RoleType]] = None
@@ -99,6 +106,7 @@ class UserInDB(UserBase):
     hashed_password: str
     created_at: datetime
     updated_at: datetime
+    last_logged_in: Optional[datetime] = None
     roles: list[Role] = []
 
     class Config:
@@ -110,6 +118,7 @@ class User(UserBase):
     id: int
     created_at: datetime
     updated_at: datetime
+    last_logged_in: Optional[datetime] = None
     roles: list[Role] = []
 
     class Config:
@@ -127,3 +136,30 @@ class UserRoleUpdate(BaseModel):
     """Schema for updating user roles."""
     user_id: int
     roles: list[RoleType]
+
+
+class PasswordChangeRequest(BaseModel):
+    """Schema for password change requests."""
+    current_password: str
+    new_password: str
+    
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password(cls, v: str) -> str:
+        """Validate new password strength."""
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        
+        if not any(c.isupper() for c in v):
+            raise ValueError("Password must contain at least one uppercase letter")
+        
+        if not any(c.islower() for c in v):
+            raise ValueError("Password must contain at least one lowercase letter")
+        
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Password must contain at least one digit")
+        
+        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in v):
+            raise ValueError("Password must contain at least one special character")
+        
+        return v

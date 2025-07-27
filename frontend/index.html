@@ -82,6 +82,7 @@
     <div class="tab-buttons">
         <button class="tab-btn active" data-tab="overview">Overview</button>
         <button class="tab-btn" data-tab="auth">Authentication</button>
+        <button class="tab-btn" data-tab="profile">User Profile</button>
         <button class="tab-btn" data-tab="rate-limits">Rate Limiting</button>
         <button class="tab-btn" data-tab="monitoring">Monitoring</button>
     </div>
@@ -158,6 +159,84 @@
 
             <div id="noTokenMessage">
                 <p>No active tokens. Login to see token information.</p>
+            </div>
+        </div>
+
+        <!-- User Profile Tab -->
+        <div id="profile-tab" class="tab-content">
+            <h2>User Profile Management</h2>
+
+            <div id="profileAuthRequired" style="display:block">
+                <p><strong>Please login first to manage your profile.</strong></p>
+            </div>
+
+            <div id="profileContent" style="display:none;">
+                <!-- Current Profile Display -->
+                <div style="margin-bottom: 30px;">
+                    <h3>Current Profile</h3>
+                    <div id="currentProfile" style="background: #f5f5f5; padding: 15px; border-radius: 5px;">
+                        <p><strong>Email:</strong> <span id="currentEmail">-</span></p>
+                        <p><strong>Username:</strong> <span id="currentUsername">-</span></p>
+                        <p><strong>First Name:</strong> <span id="currentFirstname">-</span></p>
+                        <p><strong>Last Name:</strong> <span id="currentLastname">-</span></p>
+                        <p><strong>Avatar:</strong> <span id="currentAvatar">-</span></p>
+                        <p><strong>Last Login:</strong> <span id="currentLastLogin">-</span></p>
+                        <p><strong>Roles:</strong> <span id="currentRoles">-</span></p>
+                    </div>
+                    <button id="refreshProfileBtn">Refresh Profile</button>
+                </div>
+
+                <!-- Update Profile Form -->
+                <div style="margin-bottom: 30px;">
+                    <h3>Update Profile</h3>
+                    <form id="updateProfileForm">
+                        <label for="updateFirstname">First Name</label>
+                        <input type="text" id="updateFirstname" placeholder="Enter first name">
+
+                        <label for="updateLastname">Last Name</label>
+                        <input type="text" id="updateLastname" placeholder="Enter last name">
+
+                        <label for="updateAvatar">Avatar URL</label>
+                        <input type="url" id="updateAvatar" placeholder="https://example.com/avatar.jpg">
+
+                        <button type="submit">Update Profile</button>
+                    </form>
+                </div>
+
+                <!-- Change Password Form -->
+                <div style="margin-bottom: 30px;">
+                    <h3>Change Password</h3>
+                    <form id="changePasswordForm">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" required>
+
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" required>
+
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" required>
+
+                        <small style="color: #666;">
+                            Password must be at least 8 characters with uppercase, lowercase, number, and special character.
+                        </small>
+
+                        <button type="submit">Change Password</button>
+                    </form>
+                </div>
+
+                <!-- Admin User Management (if admin) -->
+                <div id="adminSection" style="display:none; margin-bottom: 30px;">
+                    <h3>Admin: User Management</h3>
+                    <p style="background: #fffacd; padding: 10px; border-radius: 5px;">
+                        <strong>Note:</strong> As an admin, you cannot remove your own admin status for security.
+                    </p>
+                    
+                    <button id="loadAllUsersBtn">Load All Users</button>
+                    
+                    <div id="usersList" style="margin-top: 15px;">
+                        <!-- Users will be loaded here -->
+                    </div>
+                </div>
             </div>
         </div>
 
