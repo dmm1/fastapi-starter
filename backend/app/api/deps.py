@@ -3,7 +3,6 @@ API dependencies for authentication and authorization with RBAC.
 """
 
 from typing import List
-from functools import wraps
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -52,7 +51,7 @@ async def get_current_active_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
     """Get the current active user."""
-    if not current_user.is_active:
+    if not getattr(current_user, "is_active", True):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
@@ -63,7 +62,8 @@ async def get_current_admin_user(
     current_user: User = Depends(get_current_active_user),
 ) -> User:
     """Get the current admin user (backward compatibility)."""
-    if not current_user.is_admin and not current_user.has_role(RoleType.ADMIN):
+    is_admin = getattr(current_user, "is_admin", False)
+    if not is_admin and not current_user.has_role(RoleType.ADMIN):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="The user doesn't have enough privileges",
@@ -73,9 +73,12 @@ async def get_current_admin_user(
 
 def require_roles(required_roles: List[str]):
     """Dependency factory for role-based access control."""
-    async def role_checker(current_user: User = Depends(get_current_active_user)) -> User:
+
+    async def role_checker(
+        current_user: User = Depends(get_current_active_user),
+    ) -> User:
         user_roles = current_user.get_role_names()
-        
+
         # Check if user has any of the required roles
         if not any(role in user_roles for role in required_roles):
             raise HTTPException(
@@ -83,7 +86,7 @@ def require_roles(required_roles: List[str]):
                 detail=f"Access denied. Required roles: {', '.join(required_roles)}",
             )
         return current_user
-    
+
     return role_checker
 
 
@@ -103,9 +106,7 @@ def require_user():
 
 
 # Token introspection dependency
-async def get_token_payload(
-    token: str = Depends(oauth2_scheme)
-) -> dict:
+async def get_token_payload(token: str = Depends(oauth2_scheme)) -> dict:
     """Get token payload without database lookup."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

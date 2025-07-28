@@ -53,8 +53,10 @@ class SessionService:
         return session
 
     @staticmethod
-    def get_sessions(db: DBSession, user_id: int):
-        return (
+    def get_sessions(
+        db: DBSession, user_id: int, current_session_token: str | None = None
+    ):
+        sessions = (
             db.query(SessionModel)
             .filter(
                 SessionModel.user_id == user_id,
@@ -63,6 +65,18 @@ class SessionService:
             )
             .all()
         )
+
+        # Mark current session if token is provided
+        if current_session_token:
+            for session in sessions:
+                # Add a temporary attribute to mark current session
+                setattr(
+                    session,
+                    "is_current",
+                    getattr(session, "token") == current_session_token,
+                )
+
+        return sessions
 
     @staticmethod
     def delete_session(db: DBSession, session_id: int, user_id: int):
@@ -138,3 +152,72 @@ class SessionService:
 
         db.commit()
         return len(expired_sessions)
+
+    @staticmethod
+    def delete_all_sessions_except_current(
+        db: DBSession, user_id: int, current_session_token: str
+    ):
+        """Delete all sessions for a user except the current one"""
+        sessions_to_delete = (
+            db.query(SessionModel)
+            .filter(
+                SessionModel.user_id == user_id,
+                SessionModel.is_active,
+                SessionModel.token != current_session_token,
+            )
+            .all()
+        )
+
+        deleted_count = 0
+        redis_client = None
+        try:
+            redis_client = redis.Redis.from_url(REDIS_URL)
+        except Exception:
+            pass
+
+        for session in sessions_to_delete:
+            setattr(session, "is_active", False)
+            deleted_count += 1
+
+            # Remove from Redis
+            if redis_client:
+                try:
+                    redis_client.delete(f"session:{getattr(session, 'token')}")
+                except Exception:
+                    pass
+
+        db.commit()
+        return deleted_count
+
+    @staticmethod
+    def delete_all_user_sessions(db: DBSession, user_id: int):
+        """Delete all sessions for a user"""
+        sessions_to_delete = (
+            db.query(SessionModel)
+            .filter(
+                SessionModel.user_id == user_id,
+                SessionModel.is_active,
+            )
+            .all()
+        )
+
+        deleted_count = 0
+        redis_client = None
+        try:
+            redis_client = redis.Redis.from_url(REDIS_URL)
+        except Exception:
+            pass
+
+        for session in sessions_to_delete:
+            setattr(session, "is_active", False)
+            deleted_count += 1
+
+            # Remove from Redis
+            if redis_client:
+                try:
+                    redis_client.delete(f"session:{getattr(session, 'token')}")
+                except Exception:
+                    pass
+
+        db.commit()
+        return deleted_count

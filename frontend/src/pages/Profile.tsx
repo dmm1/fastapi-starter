@@ -21,7 +21,7 @@ import { useSessions } from "../hooks/useSessions";
 export default function ProfilePage() {
     const { isAuthenticated, user } = useAuthGuard();
     const { updateProfile, changePassword, refreshUser, isLoading, error } = useAuthStore();
-    const { sessions, loading: sessionsLoading, error: sessionsError, deleteSession } = useSessions();
+    const { sessions, loading: sessionsLoading, error: sessionsError, deleteSession, deleteAllOtherSessions } = useSessions();
     const [isEditing, setIsEditing] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [showPasswords, setShowPasswords] = useState({
@@ -450,10 +450,24 @@ export default function ProfilePage() {
             {/* Active Sessions */}
             <Card className="mt-8">
                 <CardHeader>
-                    <CardTitle>Active Sessions</CardTitle>
-                    <CardDescription>
-                        Manage your active login sessions across different devices
-                    </CardDescription>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Active Sessions</CardTitle>
+                            <CardDescription>
+                                Manage your active login sessions across different devices
+                            </CardDescription>
+                        </div>
+                        {sessions.filter(s => !s.is_current).length > 0 && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => deleteAllOtherSessions()}
+                                className="text-red-600 hover:text-red-800"
+                            >
+                                Logout All Other Devices
+                            </Button>
+                        )}
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {sessionsLoading ? (
@@ -472,6 +486,11 @@ export default function ProfilePage() {
                                             <span className="text-sm text-gray-600">
                                                 {session.user_agent || "Unknown Device"}
                                             </span>
+                                            {session.is_current && (
+                                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                                    Current Session
+                                                </span>
+                                            )}
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <span className="font-medium">IP Address:</span>
@@ -499,8 +518,9 @@ export default function ProfilePage() {
                                         size="sm"
                                         onClick={() => deleteSession(session.id)}
                                         disabled={sessionsLoading}
+                                        title={session.is_current ? "Logout from current session (you will be redirected to login)" : "Logout from this device"}
                                     >
-                                        Logout Device
+                                        {session.is_current ? "Logout (Current)" : "Logout Device"}
                                     </Button>
                                 </div>
                             ))}

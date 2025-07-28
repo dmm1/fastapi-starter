@@ -15,6 +15,7 @@ class SessionOut(BaseModel):
     created_at: datetime
     expires_at: Optional[datetime]
     is_active: bool
+    is_current: Optional[bool] = False
 
     class Config:
         from_attributes = True
