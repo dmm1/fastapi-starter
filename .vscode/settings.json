@@ -1,0 +1,15 @@
+{
+  "files.associations": {
+    "*.css": "tailwindcss",
+    "*.scss": "tailwindcss",
+  },
+  "python.defaultInterpreter": "./.venv/bin/python",
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": false,
+  "python.linting.flake8Enabled": true,
+  "python.formatting.provider": "black",
+  "python.analysis.autoImportCompletions": true,
+  "pylint.args": [
+    "--init-hook='import sys; sys.path.append(\".\")'"
+  ]
+}
