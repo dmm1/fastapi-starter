@@ -3,6 +3,19 @@ import { useRouter } from "@tanstack/react-router";
 import { useAuthStore } from "../stores/auth";
 import { tokenUtils } from "../lib/api-client";
 
+/**
+ * useAuthGuard
+ *
+ * React hook for protecting routes based on authentication and required roles.
+ * Automatically restores auth state, redirects to login if not authenticated,
+ * and redirects to /not-found (or unauthorized) if user lacks required roles.
+ *
+ * @param requiredRoles Optional array of role names required to access the route.
+ * @returns void
+ *
+ * Usage:
+ *   useAuthGuard(["admin"])
+ */
 export function useAuthGuard(requiredRoles?: string[]) {
   const { user, tokens, isLoading, restoreFromStorage } = useAuthStore();
   const router = useRouter();

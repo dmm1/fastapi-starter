@@ -193,3 +193,4 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 backend/data/auth.db
+backend/data/uploads/avatars/72d3ead8-07c0-485e-8e50-49cbdb9060db.png

@@ -16,10 +16,12 @@ class Settings(BaseSettings):
     description: str = "A modern authentication system with FastAPI and RBAC"
 
     # Security
-    SECRET_KEY: str = "changeme-secret-key"
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30
-    refresh_token_expire_days: int = 7
+    SECRET_KEY: str = Field(default="changeme-secret-key", alias="SECRET_KEY")
+    algorithm: str = Field(default="HS256", alias="ALGORITHM")
+    access_token_expire_minutes: int = Field(
+        default=30, alias="ACCESS_TOKEN_EXPIRE_MINUTES"
+    )
+    refresh_token_expire_days: int = Field(default=7, alias="REFRESH_TOKEN_EXPIRE_DAYS")
 
     @property
     def secret_key(self) -> str:
@@ -27,10 +29,12 @@ class Settings(BaseSettings):
         return self.SECRET_KEY
 
     # Database
-    database_url: str = "sqlite:///./data/auth.db"
+    database_url: str = Field(default="sqlite:///./data/auth.db", alias="DATABASE_URL")
 
     # CORS - Using Python 3.12 union syntax would be List[str] | str but keeping compatible
-    backend_cors_origins: List[str] = ["*"]  # Configure properly in production
+    backend_cors_origins: List[str] = Field(
+        default_factory=lambda: ["*"], alias="BACKEND_CORS_ORIGINS"
+    )  # Configure properly in production
 
     # Admin User - These MUST be set in .env file or will use defaults for development
     admin_email: str = Field(default="", alias="ADMIN_EMAIL")
@@ -38,14 +42,16 @@ class Settings(BaseSettings):
     admin_password: str = Field(default="", alias="ADMIN_PASSWORD")
 
     # Password policy settings
-    min_password_length: int = 8
-    require_uppercase: bool = True
-    require_lowercase: bool = True
-    require_numbers: bool = True
-    require_special_chars: bool = True
+    min_password_length: int = Field(default=8, alias="MIN_PASSWORD_LENGTH")
+    require_uppercase: bool = Field(default=True, alias="REQUIRE_UPPERCASE")
+    require_lowercase: bool = Field(default=True, alias="REQUIRE_LOWERCASE")
+    require_numbers: bool = Field(default=True, alias="REQUIRE_NUMBERS")
+    require_special_chars: bool = Field(default=True, alias="REQUIRE_SPECIAL_CHARS")
     createmin: bool = Field(
         default=False, alias="CREATEMIN"
     )  # If True, create admin user on startup
+    # Redis configuration
+    redis_url: str = Field(default="redis://localhost:6379", alias="REDIS_URL")
 
     # SSL/Security Configuration
     secure_cookies: bool = Field(default=False, alias="SECURE_COOKIES")

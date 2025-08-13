@@ -12,6 +12,25 @@ interface Session {
   is_current?: boolean;
 }
 
+/**
+ * useSessions
+ *
+ * React hook for managing user sessions (list, delete, logout from other devices).
+ * Fetches sessions from the API, provides loading/error state, and exposes
+ * handlers for deleting sessions. Handles logout if current session is deleted.
+ *
+ * @returns {
+ *   sessions: Session[],
+ *   loading: boolean,
+ *   error: string,
+ *   fetchSessions: () => Promise<void>,
+ *   handleDeleteSession: (id: number) => Promise<void>,
+ *   handleDeleteAllOtherSessions: () => Promise<void>
+ * }
+ *
+ * Usage:
+ *   const { sessions, loading, error, fetchSessions, handleDeleteSession } = useSessions();
+ */
 export function useSessions() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(false);

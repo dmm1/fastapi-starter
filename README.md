@@ -155,16 +155,6 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 
 See `backend/.env.example` for all available configuration options.
 
-## 🏁 Next Steps
-
-- Extend with more shadcn/ui components
-- Add more admin features
-- Integrate with your own backend or deploy as-is
-
----
-
 **Happy Coding!** 🎉
 
 Built with ❤️ using FastAPI, React, shadcn/ui, and modern web technologies.
-
-> 🚀 **Ready for your favorite frontend framework!** This authentication system provides a solid foundation that works seamlessly with React, Vue, Angular, Svelte, or any modern frontend technology.
