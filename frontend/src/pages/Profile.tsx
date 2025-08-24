@@ -42,7 +42,7 @@ export default function ProfilePage() {
     });
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     // Sidebar section state
-    const [section, setSection] = useState<'profile' | 'security' | 'sessions'>('profile');
+    const [section, setSection] = useState<'profile' | 'security' | 'sessions' | 'activity'>('profile');
 
     if (!isAuthenticated) {
         return null; // Will redirect to login
@@ -141,6 +141,12 @@ export default function ProfilePage() {
                     >
                         Sessions
                     </button>
+                    <button
+                        className={`text-left px-4 py-2 rounded font-medium transition-colors ${section === 'activity' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
+                        onClick={() => setSection('activity')}
+                    >
+                        Activity
+                    </button>
                 </nav>
             </aside>
             {/* Main Content */}
@@ -151,6 +157,53 @@ export default function ProfilePage() {
                         Manage your account information and security settings
                     </p>
                 </div>
+
+                {/* Activity Timeline Tab */}
+                {section === 'activity' && (
+                    <Card className="mb-8">
+                        <CardHeader>
+                            <CardTitle>Activity Timeline</CardTitle>
+                            <CardDescription>
+                                A visual timeline of your account activity
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="relative border-l-2 border-primary/30 pl-6 space-y-8">
+                                {/* Timeline event: Account Created */}
+                                <div className="flex items-start gap-4">
+                                    <div className="absolute -left-3.5 mt-1.5 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white shadow-lg">
+                                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" stroke="white" strokeWidth="2" fill="currentColor" /></svg>
+                                    </div>
+                                    <div>
+                                        <div className="font-semibold">Account Created</div>
+                                        <div className="text-xs text-muted-foreground">{user?.created_at ? new Date(user.created_at).toLocaleString() : 'Unknown'}</div>
+                                    </div>
+                                </div>
+                                {/* Timeline event: Profile Last Updated */}
+                                <div className="flex items-start gap-4">
+                                    <div className="absolute -left-3.5 mt-1.5 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-lg">
+                                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M12 8v4l3 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                    </div>
+                                    <div>
+                                        <div className="font-semibold">Profile Last Updated</div>
+                                        <div className="text-xs text-muted-foreground">{user?.updated_at ? new Date(user.updated_at).toLocaleString() : 'Unknown'}</div>
+                                    </div>
+                                </div>
+                                {/* Timeline event: Last Login */}
+                                <div className="flex items-start gap-4">
+                                    <div className="absolute -left-3.5 mt-1.5 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white shadow-lg">
+                                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                    </div>
+                                    <div>
+                                        <div className="font-semibold">Last Login</div>
+                                        <div className="text-xs text-muted-foreground">{user?.last_logged_in ? new Date(user.last_logged_in).toLocaleString() : 'Never'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+                {/* Removed duplicate Profile Settings header */}
                 {message && (
                     <div className={`p-4 rounded-md border ${message.type === 'success'
                         ? 'bg-green-50 text-green-800 border-green-200'
