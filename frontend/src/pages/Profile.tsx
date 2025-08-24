@@ -121,36 +121,44 @@ export default function ProfilePage() {
     return (
         <div className="flex flex-col md:flex-row h-full">
             {/* Sidebar */}
-            <aside className="w-full md:w-64 md:min-h-[500px] border-r bg-muted/50 p-6 flex-shrink-0">
-                <nav className="flex flex-row md:flex-col gap-2">
+            <aside className="w-full md:w-64 md:min-h-[500px] border-r bg-muted/50 p-6 flex-shrink-0" aria-label="Sidebar Navigation">
+                <nav className="flex flex-row md:flex-col gap-2" aria-label="Profile Sections" role="navigation">
                     <button
                         className={`text-left px-4 py-2 rounded font-medium transition-colors ${section === 'profile' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
                         onClick={() => setSection('profile')}
+                        aria-current={section === 'profile' ? 'page' : undefined}
+                        aria-label="Profile Section"
                     >
                         Profile
                     </button>
                     <button
                         className={`text-left px-4 py-2 rounded font-medium transition-colors ${section === 'security' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
                         onClick={() => setSection('security')}
+                        aria-current={section === 'security' ? 'page' : undefined}
+                        aria-label="Security Section"
                     >
                         Security
                     </button>
                     <button
                         className={`text-left px-4 py-2 rounded font-medium transition-colors ${section === 'sessions' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
                         onClick={() => setSection('sessions')}
+                        aria-current={section === 'sessions' ? 'page' : undefined}
+                        aria-label="Sessions Section"
                     >
                         Sessions
                     </button>
                     <button
                         className={`text-left px-4 py-2 rounded font-medium transition-colors ${section === 'activity' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
                         onClick={() => setSection('activity')}
+                        aria-current={section === 'activity' ? 'page' : undefined}
+                        aria-label="Activity Section"
                     >
                         Activity
                     </button>
                 </nav>
             </aside>
             {/* Main Content */}
-            <main className="flex-1 p-6 space-y-8">
+            <main className="flex-1 p-6 space-y-8" role="main">
                 <div className="mb-4">
                     <h2 className="text-3xl font-bold tracking-tight">Profile Settings</h2>
                     <p className="text-muted-foreground">
@@ -227,7 +235,7 @@ export default function ProfilePage() {
                                     </CardDescription>
                                 </div>
                                 {!isEditing && (
-                                    <Button onClick={() => setIsEditing(true)} variant="outline">
+                                    <Button onClick={() => setIsEditing(true)} variant="outline" aria-label="Edit Profile">
                                         <Edit className="mr-2 h-4 w-4" />
                                         Edit Profile
                                     </Button>
@@ -306,6 +314,7 @@ export default function ProfilePage() {
                                                 value={profileForm.firstname}
                                                 onChange={handleProfileChange}
                                                 placeholder="Enter your first name"
+                                                aria-label="First Name"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -316,6 +325,7 @@ export default function ProfilePage() {
                                                 value={profileForm.lastname}
                                                 onChange={handleProfileChange}
                                                 placeholder="Enter your last name"
+                                                aria-label="Last Name"
                                             />
                                         </div>
                                     </div>
@@ -328,6 +338,7 @@ export default function ProfilePage() {
                                             value={profileForm.email}
                                             onChange={handleProfileChange}
                                             required
+                                            aria-label="Email"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -338,6 +349,7 @@ export default function ProfilePage() {
                                             value={profileForm.username}
                                             onChange={handleProfileChange}
                                             required
+                                            aria-label="Username"
                                         />
                                     </div>
                                     {error && (
@@ -346,7 +358,7 @@ export default function ProfilePage() {
                                         </div>
                                     )}
                                     <div className="flex gap-3">
-                                        <Button type="submit" disabled={isLoading}>
+                                        <Button type="submit" disabled={isLoading} aria-label="Save Profile Changes">
                                             {isLoading ? (
                                                 <>
                                                     <Save className="mr-2 h-4 w-4 animate-spin" />
@@ -359,7 +371,7 @@ export default function ProfilePage() {
                                                 </>
                                             )}
                                         </Button>
-                                        <Button type="button" variant="outline" onClick={cancelEdit}>
+                                        <Button type="button" variant="outline" onClick={cancelEdit} aria-label="Cancel Edit Profile">
                                             <X className="mr-2 h-4 w-4" />
                                             Cancel
                                         </Button>
@@ -383,7 +395,7 @@ export default function ProfilePage() {
                                     </CardDescription>
                                 </div>
                                 {!isChangingPassword && (
-                                    <Button onClick={() => setIsChangingPassword(true)} variant="outline">
+                                    <Button onClick={() => setIsChangingPassword(true)} variant="outline" aria-label="Change Password">
                                         <Lock className="mr-2 h-4 w-4" />
                                         Change Password
                                     </Button>
@@ -420,6 +432,7 @@ export default function ProfilePage() {
                                                 value={passwordForm.currentPassword}
                                                 onChange={handlePasswordChange}
                                                 required
+                                                aria-label="Current Password"
                                             />
                                             <Button
                                                 type="button"
@@ -427,6 +440,7 @@ export default function ProfilePage() {
                                                 size="icon"
                                                 className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                                 onClick={() => togglePasswordVisibility('current')}
+                                                aria-label={showPasswords.current ? "Hide Current Password" : "Show Current Password"}
                                             >
                                                 {showPasswords.current ? (
                                                     <EyeOff className="h-4 w-4" />
@@ -446,6 +460,7 @@ export default function ProfilePage() {
                                                 value={passwordForm.newPassword}
                                                 onChange={handlePasswordChange}
                                                 required
+                                                aria-label="New Password"
                                             />
                                             <Button
                                                 type="button"
@@ -453,6 +468,7 @@ export default function ProfilePage() {
                                                 size="icon"
                                                 className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                                 onClick={() => togglePasswordVisibility('new')}
+                                                aria-label={showPasswords.new ? "Hide New Password" : "Show New Password"}
                                             >
                                                 {showPasswords.new ? (
                                                     <EyeOff className="h-4 w-4" />
@@ -472,6 +488,7 @@ export default function ProfilePage() {
                                                 value={passwordForm.confirmPassword}
                                                 onChange={handlePasswordChange}
                                                 required
+                                                aria-label="Confirm New Password"
                                             />
                                             <Button
                                                 type="button"
@@ -479,6 +496,7 @@ export default function ProfilePage() {
                                                 size="icon"
                                                 className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                                 onClick={() => togglePasswordVisibility('confirm')}
+                                                aria-label={showPasswords.confirm ? "Hide Confirm Password" : "Show Confirm Password"}
                                             >
                                                 {showPasswords.confirm ? (
                                                     <EyeOff className="h-4 w-4" />
@@ -494,7 +512,7 @@ export default function ProfilePage() {
                                         </div>
                                     )}
                                     <div className="flex gap-3">
-                                        <Button type="submit" disabled={isLoading}>
+                                        <Button type="submit" disabled={isLoading} aria-label="Change Password">
                                             {isLoading ? (
                                                 <>
                                                     <Lock className="mr-2 h-4 w-4 animate-spin" />
@@ -511,6 +529,7 @@ export default function ProfilePage() {
                                             type="button"
                                             variant="outline"
                                             onClick={cancelPasswordChange}
+                                            aria-label="Cancel Change Password"
                                         >
                                             <X className="mr-2 h-4 w-4" />
                                             Cancel
@@ -537,6 +556,7 @@ export default function ProfilePage() {
                                         size="sm"
                                         onClick={() => deleteAllOtherSessions()}
                                         className="text-red-600 hover:text-red-800"
+                                        aria-label="Logout All Other Devices"
                                     >
                                         Logout All Other Devices
                                     </Button>
@@ -593,6 +613,7 @@ export default function ProfilePage() {
                                                 onClick={() => deleteSession(session.id)}
                                                 disabled={sessionsLoading}
                                                 title={session.is_current ? "Logout from current session (you will be redirected to login)" : "Logout from this device"}
+                                                aria-label={session.is_current ? "Logout from current session" : "Logout from this device"}
                                             >
                                                 {session.is_current ? "Logout (Current)" : "Logout Device"}
                                             </Button>

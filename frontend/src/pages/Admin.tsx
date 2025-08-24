@@ -185,7 +185,7 @@ export default function AdminPage() {
 
     return (
         <div className="flex-1 space-y-8 p-8 pt-6">
-            <div className="flex items-center justify-between space-y-2">
+            <div className="flex items-center justify-between space-y-2" role="banner">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">Admin Dashboard</h2>
                     <p className="text-muted-foreground">
@@ -195,7 +195,7 @@ export default function AdminPage() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" aria-label="User statistics" role="region">
                 {statsCards.map((stat, index) => {
                     const Icon = stat.icon;
                     return (
@@ -218,7 +218,7 @@ export default function AdminPage() {
             </div>
 
             {/* Users Management */}
-            <Card>
+            <Card role="region" aria-label="User Management">
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
@@ -227,7 +227,7 @@ export default function AdminPage() {
                                 View and manage all registered users
                             </CardDescription>
                         </div>
-                        <Button>
+                        <Button aria-label="Add User">
                             <Plus className="mr-2 h-4 w-4" />
                             Add User
                         </Button>
@@ -235,32 +235,33 @@ export default function AdminPage() {
                 </CardHeader>
                 <CardContent>
                     {/* Search */}
-                    <div className="flex items-center space-x-2 mb-4">
+                    <div className="flex items-center space-x-2 mb-4" role="search">
                         <Search className="h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Search users..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="max-w-sm"
+                            aria-label="Search users"
                         />
                     </div>
 
                     {/* Users Table */}
-                    <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>User</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Roles</TableHead>
-                                    <TableHead>Created</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                    <div className="rounded-md border" role="table" aria-label="Users Table">
+                        <Table role="table">
+                            <TableHeader role="rowgroup">
+                                <TableRow role="row">
+                                    <TableHead role="columnheader">User</TableHead>
+                                    <TableHead role="columnheader">Status</TableHead>
+                                    <TableHead role="columnheader">Roles</TableHead>
+                                    <TableHead role="columnheader">Created</TableHead>
+                                    <TableHead className="text-right" role="columnheader">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody>
+                            <TableBody role="rowgroup">
                                 {filteredUsers.map((user) => (
-                                    <TableRow key={user.id}>
-                                        <TableCell>
+                                    <TableRow key={user.id} role="row">
+                                        <TableCell role="cell">
                                             <div className="flex items-center space-x-3">
                                                 <Avatar className="h-8 w-8">
                                                     <AvatarImage
@@ -284,12 +285,12 @@ export default function AdminPage() {
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell role="cell">
                                             <Badge variant={user.is_active ? "default" : "secondary"}>
                                                 {user.is_active ? "Active" : "Inactive"}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell role="cell">
                                             <div className="flex flex-wrap gap-1">
                                                 {user.roles?.map((role) => (
                                                     <Badge key={role.id} variant="outline">
@@ -300,16 +301,16 @@ export default function AdminPage() {
                                                     )}
                                             </div>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell role="cell">
                                             {user.created_at
                                                 ? new Date(user.created_at).toLocaleDateString()
                                                 : "Unknown"
                                             }
                                         </TableCell>
-                                        <TableCell className="text-right">
+                                        <TableCell className="text-right" role="cell">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                                    <Button variant="ghost" className="h-8 w-8 p-0" aria-label="Open user actions menu">
                                                         <span className="sr-only">Open menu</span>
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
@@ -318,6 +319,7 @@ export default function AdminPage() {
                                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                                     <DropdownMenuItem
                                                         onClick={() => openEditDialog(user)}
+                                                        aria-label="Edit User"
                                                     >
                                                         <Edit className="mr-2 h-4 w-4" />
                                                         Edit
@@ -326,6 +328,7 @@ export default function AdminPage() {
                                                     <DropdownMenuItem
                                                         onClick={() => openDeleteDialog(user)}
                                                         className="text-destructive"
+                                                        aria-label="Delete User"
                                                     >
                                                         <Trash2 className="mr-2 h-4 w-4" />
                                                         Delete
@@ -342,7 +345,7 @@ export default function AdminPage() {
             </Card>
 
             {/* Edit User Dialog */}
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} aria-modal="true">
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Edit User</DialogTitle>
@@ -350,7 +353,7 @@ export default function AdminPage() {
                             Make changes to the user account here. Click save when you're done.
                         </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleUpdateUser} className="space-y-4">
+                    <form onSubmit={handleUpdateUser} className="space-y-4" aria-label="Edit User Form">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="firstname">First Name</Label>
@@ -359,6 +362,7 @@ export default function AdminPage() {
                                     name="firstname"
                                     value={userForm.firstname}
                                     onChange={handleUserFormChange}
+                                    aria-label="First Name"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -368,6 +372,7 @@ export default function AdminPage() {
                                     name="lastname"
                                     value={userForm.lastname}
                                     onChange={handleUserFormChange}
+                                    aria-label="Last Name"
                                 />
                             </div>
                         </div>
@@ -379,6 +384,7 @@ export default function AdminPage() {
                                 type="email"
                                 value={userForm.email}
                                 onChange={handleUserFormChange}
+                                aria-label="Email"
                             />
                         </div>
                         <div className="space-y-2">
@@ -388,6 +394,7 @@ export default function AdminPage() {
                                 name="username"
                                 value={userForm.username}
                                 onChange={handleUserFormChange}
+                                aria-label="Username"
                             />
                         </div>
                         <div className="flex items-center space-x-2">
@@ -398,6 +405,8 @@ export default function AdminPage() {
                                 checked={userForm.is_active}
                                 onChange={handleUserFormChange}
                                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                aria-checked={userForm.is_active}
+                                aria-label="Active"
                             />
                             <Label htmlFor="is_active">Active</Label>
                         </div>
@@ -409,6 +418,8 @@ export default function AdminPage() {
                                 checked={userForm.is_admin}
                                 onChange={handleUserFormChange}
                                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                aria-checked={userForm.is_admin}
+                                aria-label="Admin"
                             />
                             <Label htmlFor="is_admin">Admin</Label>
                         </div>
@@ -417,10 +428,11 @@ export default function AdminPage() {
                                 type="button"
                                 variant="outline"
                                 onClick={() => setIsEditDialogOpen(false)}
+                                aria-label="Cancel Edit User"
                             >
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={updateUserMutation.isPending}>
+                            <Button type="submit" disabled={updateUserMutation.isPending} aria-label="Save User Changes">
                                 {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
                             </Button>
                         </DialogFooter>
@@ -429,7 +441,7 @@ export default function AdminPage() {
             </Dialog>
 
             {/* Delete User Dialog */}
-            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen} aria-modal="true">
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Delete User</DialogTitle>
@@ -441,6 +453,7 @@ export default function AdminPage() {
                         <Button
                             variant="outline"
                             onClick={() => setIsDeleteDialogOpen(false)}
+                            aria-label="Cancel Delete User"
                         >
                             Cancel
                         </Button>
@@ -448,6 +461,7 @@ export default function AdminPage() {
                             variant="destructive"
                             onClick={handleDeleteUser}
                             disabled={deleteUserMutation.isPending}
+                            aria-label="Confirm Delete User"
                         >
                             {deleteUserMutation.isPending ? "Deleting..." : "Delete"}
                         </Button>
