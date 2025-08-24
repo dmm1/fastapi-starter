@@ -31,9 +31,24 @@ class Settings(BaseSettings):
     # Database
     database_url: str = Field(default="sqlite:///./data/auth.db", alias="DATABASE_URL")
 
-    # CORS - Using Python 3.12 union syntax would be List[str] | str but keeping compatible
+    # CORS - Include Expo development ports and Android emulator
     backend_cors_origins: List[str] = Field(
-        default_factory=lambda: ["*"], alias="BACKEND_CORS_ORIGINS"
+        default_factory=lambda: [
+            "http://localhost:3000",     # React development server
+            "http://localhost:8081",     # Expo Metro bundler
+            "http://localhost:19000",    # Expo development server
+            "http://localhost:19001",    # Expo development server (alternative)
+            "http://localhost:19006",    # Expo web development server
+            "exp://localhost:19000",     # Expo mobile development
+            "exp://localhost:19001",     # Expo mobile development (alternative)
+            "http://127.0.0.1:8081",     # Metro bundler (127.0.0.1)
+            "http://127.0.0.1:19000",    # Expo development server (127.0.0.1)
+            "http://127.0.0.1:19006",    # Expo web development server (127.0.0.1)
+            "http://10.0.2.2:8081",      # Android emulator Metro bundler
+            "http://10.0.2.2:19000",     # Android emulator Expo server
+            "http://10.0.2.2:19006",     # Android emulator Expo web server
+        ], 
+        alias="BACKEND_CORS_ORIGINS"
     )  # Configure properly in production
 
     # Admin User - These MUST be set in .env file or will use defaults for development

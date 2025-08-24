@@ -32,23 +32,60 @@ const usePlatformSpecificSetup = Platform.select({
 });
 
 export default function RootLayout() {
-  usePlatformSpecificSetup();
+  // Call the correct platform-specific hook at the top level
+  const platformSetupHook = Platform.select({
+    web: useSetWebBackgroundClassName,
+    android: useSetAndroidNavigationBar,
+    default: noop,
+  });
+  platformSetupHook();
   const { isDarkColorScheme } = useColorScheme();
+  const { AuthProvider } = require('~/lib/auth-context');
 
   return (
-    <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-      <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
-      <Stack>
-        <Stack.Screen
-          name='index'
-          options={{
-            title: 'Starter Base',
-            headerRight: () => <ThemeToggle />,
-          }}
-        />
-      </Stack>
-      <PortalHost />
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+        <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+        <Stack>
+          <Stack.Screen
+            name='index'
+            options={{
+              title: 'Home',
+              headerRight: () => <ThemeToggle />,
+            }}
+          />
+          <Stack.Screen
+            name='login'
+            options={{
+              title: 'Login',
+              presentation: 'modal',
+            }}
+          />
+          <Stack.Screen
+            name='register'
+            options={{
+              title: 'Register',
+              presentation: 'modal',
+            }}
+          />
+          <Stack.Screen
+            name='profile'
+            options={{
+              title: 'Profile',
+              headerRight: () => <ThemeToggle />,
+            }}
+          />
+          <Stack.Screen
+            name='sessions'
+            options={{
+              title: 'Active Sessions',
+              headerRight: () => <ThemeToggle />,
+            }}
+          />
+        </Stack>
+        <PortalHost />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 
@@ -68,4 +105,4 @@ function useSetAndroidNavigationBar() {
   }, []);
 }
 
-function noop() {}
+function noop() { }
