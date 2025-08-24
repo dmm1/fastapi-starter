@@ -179,15 +179,25 @@ export default function Dashboard() {
                             <div className="flex items-center space-x-4">
                                 <div className="w-2 h-2 bg-primary rounded-full"></div>
                                 <div className="space-y-1">
-                                    <p className="text-sm font-medium">Logged in</p>
-                                    <p className="text-xs text-muted-foreground">Today at 2:30 PM</p>
+                                    <p className="text-sm font-medium">Last Login</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {user?.last_logged_in
+                                            ? new Date(user.last_logged_in).toLocaleString()
+                                            : "Never"
+                                        }
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex items-center space-x-4">
                                 <div className="w-2 h-2 bg-muted rounded-full"></div>
                                 <div className="space-y-1">
-                                    <p className="text-sm font-medium">Profile updated</p>
-                                    <p className="text-xs text-muted-foreground">Yesterday at 1:15 PM</p>
+                                    <p className="text-sm font-medium">Profile last updated</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {user?.updated_at
+                                            ? new Date(user.updated_at).toLocaleString()
+                                            : "Unknown"
+                                        }
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex items-center space-x-4">
@@ -196,7 +206,7 @@ export default function Dashboard() {
                                     <p className="text-sm font-medium">Account created</p>
                                     <p className="text-xs text-muted-foreground">
                                         {user?.created_at
-                                            ? new Date(user.created_at).toLocaleDateString()
+                                            ? new Date(user.created_at).toLocaleString()
                                             : "Unknown"
                                         }
                                     </p>
