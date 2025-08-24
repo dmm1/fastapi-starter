@@ -5,11 +5,18 @@
   },
   "python.defaultInterpreter": "./.venv/bin/python",
   "python.linting.enabled": true,
-  "python.linting.pylintEnabled": false,
+  "python.linting.pylintEnabled": true,
   "python.linting.flake8Enabled": true,
   "python.formatting.provider": "black",
   "python.analysis.autoImportCompletions": true,
   "pylint.args": [
     "--init-hook='import sys; sys.path.append(\".\")'"
-  ]
+  ],
+  "chat.tools.autoApprove": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "python.analysis.extraPaths": [
+    "./backend"
+  ],
+  "claudeCodeChat.permissions.yoloMode": true
 }
