@@ -250,7 +250,7 @@ export default function ProfilePage() {
                                         <Badge variant={user?.is_active ? "default" : "secondary"}>
                                             {user?.is_active ? "Active" : "Inactive"}
                                         </Badge>
-                                        {user?.roles?.map((role) => (
+                                        {user?.roles?.map((role: { id: string | number; name: string }) => (
                                             <Badge key={role.id} variant="outline">
                                                 {role.name}
                                             </Badge>
